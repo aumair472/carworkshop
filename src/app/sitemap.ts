@@ -3,7 +3,21 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 const BASE_URL = 'https://carworkshop.ae'
 
+export const dynamic = 'force-dynamic'
+
+const STATIC_PAGES: MetadataRoute.Sitemap = [
+  { url: BASE_URL, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
+  { url: `${BASE_URL}/services`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL}/brands`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL}/locations`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+  { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+]
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return STATIC_PAGES
+
   const supabase = createServiceClient()
 
   const [{ data: brands }, { data: services }, { data: locations }, { data: posts }, { data: models }] = await Promise.all([
@@ -13,16 +27,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from('blog_posts').select('slug, updated_at').eq('status', 'published'),
     supabase.from('brand_models').select('slug, updated_at').eq('status', 'published'),
   ])
-
-  const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
-    { url: `${BASE_URL}/services`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE_URL}/brands`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE_URL}/locations`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  ]
 
   const brandPages: MetadataRoute.Sitemap = (brands ?? []).map(b => ({
     url: `${BASE_URL}/brands/${b.slug}`,
@@ -59,5 +63,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...brandPages, ...servicePages, ...locationPages, ...blogPages, ...modelPages]
+  return [...STATIC_PAGES, ...brandPages, ...servicePages, ...locationPages, ...blogPages, ...modelPages]
 }
