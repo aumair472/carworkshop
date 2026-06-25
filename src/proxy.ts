@@ -24,28 +24,16 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const isAdminPath = req.nextUrl.pathname.startsWith('/admin')
   const isLoginPath = req.nextUrl.pathname === '/admin/login'
 
-  if (isAdminPath && !isLoginPath) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
-    }
-
-    const { data: userRecord } = await supabase
-      .from('users')
-      .select('role, is_active')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!userRecord || !userRecord.is_active) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
-    }
+  if (isAdminPath && !isLoginPath && !user) {
+    return NextResponse.redirect(new URL('/admin/login', req.url))
   }
 
-  if (isLoginPath && session) {
+  if (isLoginPath && user) {
     return NextResponse.redirect(new URL('/admin', req.url))
   }
 
