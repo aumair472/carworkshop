@@ -1,8 +1,12 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = 'CarWorkshop.ae <noreply@carworkshop.ae>'
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'info@carworkshop.ae'
+
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) return null
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 interface LeadNotificationParams {
   name: string
@@ -13,7 +17,8 @@ interface LeadNotificationParams {
 }
 
 export async function sendLeadNotification(lead: LeadNotificationParams): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return
+  const resend = getResend()
+  if (!resend) return
 
   await resend.emails.send({
     from: FROM,
@@ -33,7 +38,8 @@ export async function sendLeadNotification(lead: LeadNotificationParams): Promis
 }
 
 export async function sendLeadConfirmation(to: string, name: string): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return
+  const resend = getResend()
+  if (!resend) return
 
   await resend.emails.send({
     from: FROM,
