@@ -24,19 +24,21 @@ export async function POST(req: NextRequest) {
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
 
-    const { success, limit, remaining, reset } = await leadFormLimiter.limit(ip)
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': limit.toString(),
-            'X-RateLimit-Remaining': remaining.toString(),
-            'X-RateLimit-Reset': reset.toString(),
-          },
-        }
-      )
+    if (leadFormLimiter) {
+      const { success, limit, remaining, reset } = await leadFormLimiter.limit(ip)
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            },
+          }
+        )
+      }
     }
 
     const body: unknown = await req.json()
