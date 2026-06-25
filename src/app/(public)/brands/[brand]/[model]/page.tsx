@@ -40,6 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export const revalidate = 86400
 
 export async function generateStaticParams() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
   const supabase = createServiceClientBuild()
   const { data: modelsData } = await supabase
     .from('brand_models')

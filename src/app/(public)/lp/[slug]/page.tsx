@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export const revalidate = 3600
 
 export async function generateStaticParams() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
   const supabase = createServiceClient()
   const { data } = await supabase.from('static_pages').select('slug').like('slug', 'lp/%').eq('status', 'published')
   return (data ?? []).map(p => ({ slug: p.slug.replace('lp/', '') }))

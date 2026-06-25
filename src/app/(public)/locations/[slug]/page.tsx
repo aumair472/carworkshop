@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export const revalidate = 86400
 
 export async function generateStaticParams() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
   const supabase = createServiceClient()
   const { data } = await supabase.from('locations').select('slug').eq('status', 'published')
   return (data ?? []).map(l => ({ slug: l.slug }))
