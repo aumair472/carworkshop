@@ -58,13 +58,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const service = createServiceClient()
-    const { error } = await service.from('blog_posts').delete().eq('id', id)
+    const { data, error } = await service.from('blog_posts').delete().eq('id', id).select('slug').single()
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     await logAudit({ userId: user.id, action: 'delete', table: 'blog_posts', recordId: id, changes: {} })
+    if (data?.slug) await revalidatePage('blog', data.slug)
 
     return NextResponse.json({ success: true })
   } catch (err) {
