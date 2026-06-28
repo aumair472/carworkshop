@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { CreateLocationSchema } from '@/lib/schemas/location'
 import { logAudit } from '@/lib/audit'
 import { generateSlug } from '@/lib/page-engine/slugify'
+import { revalidatePage } from '@/lib/revalidate'
 
 export async function GET() {
   try {
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     await logAudit({ userId: user.id, action: 'create', table: 'locations', recordId: data.id })
+    if (data.status === 'published') await revalidatePage('location', data.slug)
     return NextResponse.json({ location: data }, { status: 201 })
   } catch (err) {
     console.error('POST /api/admin/locations:', err)

@@ -5,6 +5,7 @@ import { CreateServiceSchema } from '@/lib/schemas/service'
 import { sanitizeHTML } from '@/lib/sanitize'
 import { logAudit } from '@/lib/audit'
 import { generateSlug } from '@/lib/page-engine/slugify'
+import { revalidatePage } from '@/lib/revalidate'
 
 export async function GET() {
   try {
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     await logAudit({ userId: user.id, action: 'create', table: 'services', recordId: data.id })
+    if (data.status === 'published') await revalidatePage('service', data.slug)
     return NextResponse.json({ service: data }, { status: 201 })
   } catch (err) {
     console.error('POST /api/admin/services:', err)

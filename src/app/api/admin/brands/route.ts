@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { CreateBrandSchema } from '@/lib/schemas/brand'
 import { logAudit } from '@/lib/audit'
 import { generateSlug } from '@/lib/page-engine/slugify'
+import { revalidatePage } from '@/lib/revalidate'
 
 export async function GET() {
   try {
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     await logAudit({ userId: user.id, action: 'create', table: 'brands', recordId: data.id })
+    if (data.status === 'published') await revalidatePage('brand', data.slug)
     return NextResponse.json({ brand: data }, { status: 201 })
   } catch (err) {
     console.error('POST /api/admin/brands:', err)

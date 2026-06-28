@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { CreateBlogPostSchema } from '@/lib/schemas/blog'
 import { sanitizeHTML } from '@/lib/sanitize'
 import { logAudit } from '@/lib/audit'
+import { revalidatePage } from '@/lib/revalidate'
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     await logAudit({ userId: user.id, action: 'create', table: 'blog_posts', recordId: data.id })
+    if ((status ?? 'draft') === 'published') await revalidatePage('blog', data.slug)
 
     return NextResponse.json(data, { status: 201 })
   } catch (err) {
