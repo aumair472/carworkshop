@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const { error } = await client.from('generated_pages').update({ updated_at: new Date().toISOString() }).in('id', parsed.data.ids)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    revalidatePath('/brands', 'page')
+    revalidatePath('/brands')
     await logAudit({ userId: user.id, action: 'generate', table: 'generated_pages', recordId: parsed.data.ids.join(',') })
     return NextResponse.json({ success: true, count: parsed.data.ids.length })
   } catch (err) {

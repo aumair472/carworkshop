@@ -55,7 +55,7 @@ export async function revalidatePage(type: RevalidateType, slug?: string): Promi
   try {
     if (type === 'all') { revalidatePath('/', 'layout'); return }
     for (const p of pathsForRevalidate(type, slug)) {
-      try { revalidatePath(p, 'page') } catch { /* best-effort per path */ }
+      try { revalidatePath(p) } catch { /* best-effort per path */ }
     }
   } catch (err) {
     console.error('revalidatePage error:', err)

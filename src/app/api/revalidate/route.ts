@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     if (type) {
       if (!slug) return NextResponse.json({ error: 'slug required for type' }, { status: 400 })
       const paths = pathsForRevalidate(type as RevalidateType, slug)
-      paths.forEach(p => revalidatePath(p, 'page'))
+      paths.forEach(p => revalidatePath(p))
       return NextResponse.json({ revalidated: true, type, slug, paths })
     }
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (path) {
-      revalidatePath(path, 'page')
+      revalidatePath(path)
       return NextResponse.json({ revalidated: true, path })
     }
 
