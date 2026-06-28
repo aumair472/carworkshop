@@ -9,13 +9,13 @@ interface LocationsSectionProps {
 
 export function LocationsSection({ locations, title = 'Find Us Across UAE', serviceSlug }: LocationsSectionProps) {
   return (
-    <section className="py-14 bg-[#F9FAFB]" aria-labelledby="locations-heading">
+    <section className="py-16 lg:py-24 bg-[#F8FAFC]" aria-labelledby="locations-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 id="locations-heading" className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] text-center mb-10">
+        <h2 id="locations-heading" className="display-tight text-balance text-3xl sm:text-4xl font-extrabold text-[#0F172A] text-center mb-12">
           {title}
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {locations.map(location => {
             const href = serviceSlug
               ? `/services/${serviceSlug}/${location.slug}`
@@ -25,20 +25,20 @@ export function LocationsSection({ locations, title = 'Find Us Across UAE', serv
               <Link
                 key={location.id}
                 href={href}
-                className="group flex flex-col items-center gap-3 p-6 bg-white rounded-lg border border-[#E5E7EB] hover:border-[#4472C4] hover:shadow-md transition-all duration-150 text-center"
+                className="group card-premium flex items-center gap-3 p-5 text-left"
               >
-                <div className="w-10 h-10 rounded-full bg-[#EEF3FB] flex items-center justify-center group-hover:bg-[#4472C4] transition-colors">
-                  <svg className="w-5 h-5 text-[#4472C4] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="shrink-0 w-11 h-11 rounded-2xl bg-[#EEF3FB] ring-1 ring-[#DCE6F6] flex items-center justify-center group-hover:bg-[#FDEEE4] group-hover:ring-[#F6D2BC] transition-all">
+                  <svg className="w-5 h-5 text-[#4472C4] group-hover:text-[#E8601C] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="font-bold text-[#1F2937] group-hover:text-[#4472C4] transition-colors text-sm">
+                <div className="min-w-0">
+                  <p className="font-bold text-[#0F172A] group-hover:text-[#274E96] transition-colors text-sm truncate">
                     {location.name}
                   </p>
                   {location.emirate && (
-                    <p className="text-xs text-[#9CA3AF] mt-0.5">{location.emirate}</p>
+                    <p className="text-xs text-[#94A3B8] mt-0.5 truncate">{location.emirate}</p>
                   )}
                 </div>
               </Link>
@@ -46,9 +46,10 @@ export function LocationsSection({ locations, title = 'Find Us Across UAE', serv
           })}
         </div>
 
-        <div className="text-center mt-8">
-          <Link href="/locations" className="text-[#4472C4] font-semibold hover:underline">
-            View All Locations →
+        <div className="text-center mt-10">
+          <Link href="/locations" className="inline-flex items-center gap-1 text-[#4472C4] font-semibold hover:gap-2 transition-all">
+            View All Locations
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
         </div>
       </div>

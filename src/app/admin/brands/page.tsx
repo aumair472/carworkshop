@@ -1,8 +1,10 @@
+import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
-import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import Link from 'next/link'
+import { AdminBadge } from '@/components/admin/ui/AdminBadge'
+import { AdminLinkButton } from '@/components/admin/ui/AdminButton'
+import { EmptyState } from '@/components/admin/ui/AdminStates'
+import { Car, Plus, ExternalLink } from 'lucide-react'
 import type { ContentStatus } from '@/types'
 
 export const metadata = { title: 'Brands' }
@@ -11,52 +13,50 @@ export default async function BrandsAdminPage() {
   const supabase = await createServerSupabase()
   const { data: brands, count } = await supabase
     .from('brands')
-    .select('*', { count: 'exact' })
+    .select('id, name, slug, logo_url, status', { count: 'exact' })
     .order('sort_order')
 
   return (
     <div className="flex flex-col flex-1">
       <AdminTopbar
         title={`Brands (${count ?? 0})`}
-        actions={
-          <Link href="/admin/brands/new" className="px-4 py-2 rounded-md bg-[#4472C4] text-white text-sm font-semibold hover:bg-[#3563B0] transition-colors">
-            + New Brand
-          </Link>
-        }
+        actions={<AdminLinkButton href="/admin/brands/new" variant="primary"><Plus size={15} /> New Brand</AdminLinkButton>}
       />
 
-      <div className="p-6">
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                  {['Name', 'Slug', 'Status', 'Sort', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6B7280]">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F3F4F6]">
-                {(brands ?? []).map(brand => (
-                  <tr key={brand.id} className="hover:bg-[#F9FAFB]">
-                    <td className="px-4 py-3 font-medium text-[#1F2937]">{brand.name}</td>
-                    <td className="px-4 py-3 text-[#6B7280] font-mono text-xs">{brand.slug}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={brand.status as ContentStatus}>{brand.status}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-[#6B7280]">{brand.sort_order}</td>
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/brands/${brand.id}`} className="text-[#4472C4] hover:underline text-xs font-medium">Edit</Link>
-                    </td>
-                  </tr>
-                ))}
-                {!brands?.length && (
-                  <tr><td colSpan={5} className="px-4 py-12 text-center text-[#9CA3AF]">No brands yet</td></tr>
-                )}
-              </tbody>
-            </table>
+      <div className="p-6 lg:p-8">
+        {!brands?.length ? (
+          <div className="bg-white rounded-xl border border-zinc-200">
+            <EmptyState
+              icon={<Car size={22} />}
+              title="No brands yet"
+              description="Add your first brand to start generating pages."
+              action={<AdminLinkButton href="/admin/brands/new" variant="primary"><Plus size={15} /> Add Brand</AdminLinkButton>}
+            />
           </div>
-        </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {brands.map(brand => (
+              <div key={brand.id} className="group bg-white rounded-xl border border-zinc-200 shadow-sm p-5 hover:shadow-md hover:border-zinc-300 transition-all flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-lg bg-zinc-50 border border-zinc-100 flex items-center justify-center overflow-hidden shrink-0">
+                    {brand.logo_url
+                      ? <Image src={brand.logo_url} alt={`${brand.name} logo`} width={36} height={36} className="object-contain" />
+                      : <span className="text-sm font-bold text-zinc-400">{brand.name.slice(0, 2).toUpperCase()}</span>}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-zinc-900 truncate">{brand.name}</p>
+                    <p className="text-xs text-zinc-400 font-mono truncate">/{brand.slug}</p>
+                  </div>
+                </div>
+                <div className="mb-4"><AdminBadge kind={brand.status as ContentStatus} /></div>
+                <div className="mt-auto flex items-center gap-2">
+                  <AdminLinkButton href={`/admin/brands/${brand.id}`} variant="outline" className="flex-1">Edit</AdminLinkButton>
+                  <AdminLinkButton href={`/brands/${brand.slug}`} target="_blank" rel="noopener noreferrer" variant="ghost"><ExternalLink size={15} /></AdminLinkButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

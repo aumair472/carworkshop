@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid data', details: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { title, slug, excerpt, content, status, seo_title, seo_description } = parsed.data
+    const { title, slug, excerpt, content, status, seo_title, seo_description, author_id, featured_image } = parsed.data
     const sanitizedContent = content ? sanitizeHTML(content) : null
     const resolvedSlug = slug ?? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
         status: status ?? 'draft',
         seo_title: seo_title ?? null,
         seo_description: seo_description ?? null,
-        author_id: user.id,
+        featured_image: featured_image ?? null,
+        author_id: author_id ?? user.id,
         published_at: status === 'published' ? new Date().toISOString() : null,
       })
       .select('id, slug')

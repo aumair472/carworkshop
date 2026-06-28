@@ -30,10 +30,22 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
 
-  /* Shadows */
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-elevated: 0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -1px rgba(0,0,0,0.06);
-  --shadow-hover: 0 10px 15px -3px rgba(0,0,0,0.10), 0 4px 6px -2px rgba(0,0,0,0.05);
+  /* Shadows — premium, layered, low-opacity */
+  --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
+  --shadow-elevated: 0 4px 12px -2px rgba(16,24,40,0.08), 0 2px 6px -2px rgba(16,24,40,0.05);
+  --shadow-hover: 0 18px 40px -12px rgba(16,24,40,0.18), 0 8px 16px -8px rgba(16,24,40,0.10);
+  --shadow-ring: 0 0 0 1px rgba(16,24,40,0.04);
+
+  /* Premium surface + accent tokens */
+  --hairline: #EEF1F5;
+  --ink-50: #F8FAFC;
+  --primary-soft: #EEF3FB;
+  --color-primary-900: #1E3A6B;
+
+  /* Gradients */
+  --gradient-cta: linear-gradient(135deg, #5A86D6 0%, #4472C4 55%, #2F4F94 100%);
+  --gradient-primary: linear-gradient(135deg, #4472C4 0%, #274E96 100%);
+  --gradient-orange: linear-gradient(135deg, #F4793A 0%, #E8601C 100%);
 }
 
 :root {
@@ -53,4 +65,170 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Premium public-site design system ─────────────────────────────────── */
+
+/* Display headings: tighter tracking + balanced wrapping */
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+.display-tight { letter-spacing: -0.02em; line-height: 1.05; }
+
+/* Soft radial mesh background for hero / CTA bands */
+.bg-mesh {
+  background-color: #F4F7FD;
+  background-image:
+    radial-gradient(42rem 42rem at 12% -10%, rgba(68,114,196,0.14), transparent 60%),
+    radial-gradient(38rem 38rem at 92% 0%, rgba(232,96,28,0.10), transparent 55%),
+    radial-gradient(30rem 30rem at 70% 110%, rgba(68,114,196,0.08), transparent 60%);
+}
+.bg-mesh-dark {
+  background-color: #1B2A4A;
+  background-image:
+    radial-gradient(40rem 40rem at 10% -10%, rgba(90,134,214,0.45), transparent 55%),
+    radial-gradient(36rem 36rem at 95% 10%, rgba(232,96,28,0.30), transparent 55%);
+}
+
+/* Gradient surfaces */
+.bg-gradient-cta { background-image: var(--gradient-cta); }
+.bg-gradient-primary { background-image: var(--gradient-primary); }
+.bg-gradient-orange { background-image: var(--gradient-orange); }
+
+/* Glassy elevated card */
+.card-premium {
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--hairline);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.card-premium:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+  border-color: #DCE6F6;
+}
+
+/* Hairline divider color helper */
+.border-hairline { border-color: var(--hairline); }
+
+/* Subtle dotted grid texture overlay (use as ::before via class) */
+.texture-dots {
+  background-image: radial-gradient(rgba(31,41,55,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* ─── Scroll-reveal (pure CSS, toggled by IntersectionObserver) ─────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal-fade { transform: none; }
+.reveal-left { transform: translateX(-20px); }
+.reveal-right { transform: translateX(20px); }
+.reveal-left.is-visible, .reveal-right.is-visible { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* ─── Rich content (admin-authored HTML) — Tailwind v4 has no prose plugin ── */
+.rich-content { color: #334155; font-size: 1rem; line-height: 1.75; }
+.rich-content > :first-child { margin-top: 0; }
+.rich-content h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 800; color: #0F172A; letter-spacing: -0.01em; line-height: 1.2; margin: 2rem 0 1rem; }
+.rich-content h2 { font-size: clamp(1.4rem, 2.4vw, 1.75rem); font-weight: 800; color: #0F172A; letter-spacing: -0.01em; line-height: 1.25; margin: 2rem 0 0.75rem; }
+.rich-content h3 { font-size: 1.25rem; font-weight: 700; color: #0F172A; margin: 1.5rem 0 0.5rem; }
+.rich-content h4 { font-size: 1.1rem; font-weight: 700; color: #1F2937; margin: 1.25rem 0 0.5rem; }
+.rich-content p { margin: 0 0 1.1rem; }
+.rich-content a { color: #2F5BA8; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.rich-content a:hover { color: #E8601C; }
+.rich-content strong, .rich-content b { font-weight: 700; color: #0F172A; }
+.rich-content ul, .rich-content ol { margin: 0 0 1.1rem; padding-left: 1.4rem; }
+.rich-content ul { list-style: disc; }
+.rich-content ol { list-style: decimal; }
+.rich-content li { margin: 0.4rem 0; padding-left: 0.25rem; }
+.rich-content li::marker { color: #4472C4; }
+.rich-content blockquote { border-left: 3px solid #4472C4; background: #F5F8FD; padding: 0.75rem 1.1rem; margin: 1.25rem 0; border-radius: 0.5rem; color: #475569; }
+.rich-content img { border-radius: 0.75rem; margin: 1.25rem 0; max-width: 100%; height: auto; }
+.rich-content hr { border: 0; border-top: 1px solid var(--hairline); margin: 2rem 0; }
+.rich-content table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.95rem; }
+.rich-content th, .rich-content td { border: 1px solid var(--hairline); padding: 0.6rem 0.8rem; text-align: left; }
+.rich-content th { background: #F8FAFC; font-weight: 700; color: #0F172A; }
+
+/* ─── Themed scrollbar ──────────────────────────────────────────────────── */
+html { scrollbar-width: thin; scrollbar-color: #4472C4 #EEF1F5; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #EEF1F5; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #5A86D6, #4472C4);
+  border-radius: 9999px;
+  border: 3px solid #EEF1F5;
+}
+::-webkit-scrollbar-thumb:hover { background: #274E96; }
+
+/* Thin, subtle scrollbar for the admin sidebar nav */
+.admin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #4B5563 transparent;
+}
+.admin-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-scroll::-webkit-scrollbar-thumb {
+  background-color: #4B5563;
+  border-radius: 9999px;
+}
+.admin-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #6B7280;
+}
+
+/* ─── Admin design tokens ──────────────────────────────────────────────── */
+:root {
+  --admin-sidebar-bg: #0F1117;
+  --admin-sidebar-text: #A1A1AA;
+  --admin-sidebar-active: #FFFFFF;
+  --admin-sidebar-active-bg: #1E1E2E;
+  --admin-sidebar-hover: #1A1A2E;
+  --admin-sidebar-border: #27272A;
+  --admin-sidebar-section: #52525B;
+
+  --admin-content-bg: #F8F9FC;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #E4E4E7;
+  --admin-card-shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+  --admin-primary: #4472C4;
+  --admin-primary-hover: #3560B0;
+  --admin-cta: #E8601C;
+  --admin-danger: #EF4444;
+  --admin-success: #22C55E;
+  --admin-warning: #F59E0B;
+
+  --admin-text-primary: #09090B;
+  --admin-text-secondary: #71717A;
+  --admin-text-muted: #A1A1AA;
+
+  --admin-input-bg: #FFFFFF;
+  --admin-input-border: #D4D4D8;
+  --admin-input-focus: #4472C4;
+  --admin-input-radius: 8px;
+}
+
+/* Tiptap editor content baseline inside admin */
+.admin-rte .ProseMirror { min-height: 200px; outline: none; }
+.admin-rte .ProseMirror p { margin: 0 0 0.5rem; }
+.admin-rte .ProseMirror:focus { outline: none; }
+.admin-rte .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left; color: #A1A1AA; pointer-events: none; height: 0;
 }

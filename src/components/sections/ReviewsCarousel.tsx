@@ -1,4 +1,3 @@
-import { Card } from '@/components/ui/Card'
 
 interface Review {
   name: string
@@ -77,37 +76,45 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-export function ReviewsCarousel() {
+interface ReviewsCarouselProps {
+  heading?: string
+  reviews?: Array<{ name: string; rating: number; service: string; text: string; location?: string; date?: string }>
+}
+
+export function ReviewsCarousel({ heading, reviews }: ReviewsCarouselProps = {}) {
+  const list: Review[] = reviews && reviews.length > 0
+    ? reviews.map(r => ({ name: r.name, rating: r.rating, service: r.service, text: r.text, location: r.location ?? '', date: r.date ?? '' }))
+    : REVIEWS
   return (
-    <section className="py-14 lg:py-20 bg-[#F9FAFB]" aria-labelledby="reviews-heading">
+    <section className="py-16 lg:py-24 bg-[#F8FAFC]" aria-labelledby="reviews-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h2 id="reviews-heading" className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] mb-2">
-            What Our Customers Say
+        <div className="text-center mb-12 max-w-2xl mx-auto">
+          <h2 id="reviews-heading" className="display-tight text-balance text-3xl sm:text-4xl font-extrabold text-[#0F172A] mb-2">
+            {heading || 'What Our Customers Say'}
           </h2>
-          <p className="text-[#6B7280]">4.9 ★ average from 2,400+ verified reviews</p>
+          <p className="text-pretty text-[#64748B] text-lg">4.9 ★ average from 2,400+ verified reviews</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {REVIEWS.map(review => (
-            <Card key={review.name} padding="md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+          {list.map((review, i) => (
+            <figure key={i} className="card-premium p-6 flex flex-col">
               <div className="flex justify-between items-start mb-3">
                 <StarRating rating={review.rating} />
-                <span className="text-xs text-[#9CA3AF]">{review.date}</span>
+                <span className="text-xs text-[#94A3B8]">{review.date}</span>
               </div>
-              <blockquote className="text-sm text-[#374151] leading-relaxed mb-4">
+              <blockquote className="text-[15px] text-[#334155] leading-relaxed mb-5 flex-1">
                 &ldquo;{review.text}&rdquo;
               </blockquote>
-              <div className="flex items-center gap-3 border-t border-[#F3F4F6] pt-3">
-                <div className="w-8 h-8 rounded-full bg-[#4472C4] text-white text-sm font-bold flex items-center justify-center">
+              <figcaption className="flex items-center gap-3 border-t border-hairline pt-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-primary text-white text-sm font-bold flex items-center justify-center">
                   {review.name[0]}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#1F2937]">{review.name}</p>
-                  <p className="text-xs text-[#9CA3AF]">{review.location} · {review.service}</p>
+                  <p className="text-sm font-semibold text-[#0F172A]">{review.name}</p>
+                  <p className="text-xs text-[#94A3B8]">{[review.location, review.service].filter(Boolean).join(' · ')}</p>
                 </div>
-              </div>
-            </Card>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>

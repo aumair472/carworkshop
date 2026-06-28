@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://carworkshop.ae'),
   title: {
     default: 'CarWorkshop.ae — Trusted Car Repair & Service in UAE',
-    template: '%s | CarWorkshop.ae',
+    // Page titles already include the brand suffix; template must not append it
+    // again (avoids "… | CarWorkshop.ae | CarWorkshop.ae").
+    template: '%s',
   },
   description: 'Book expert car repair, servicing, and maintenance across UAE. Certified technicians, transparent pricing, doorstep service available.',
   keywords: ['car repair UAE', 'car service Dubai', 'auto repair Abu Dhabi', 'car maintenance UAE', 'CarWorkshop'],
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   alternates: { canonical: 'https://carworkshop.ae' },
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

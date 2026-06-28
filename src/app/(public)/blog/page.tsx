@@ -1,19 +1,28 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { createServerSupabase } from '@/lib/supabase/server'
-import { Breadcrumb } from '@/components/ui/Breadcrumb'
+import { createPublicSupabase } from '@/lib/supabase/public'
+import { PageHeader } from '@/components/sections/PageHeader'
 import { Card } from '@/components/ui/Card'
+import { CTABanner } from '@/components/sections/CTABanner'
+import { generateCollectionSchema } from '@/lib/page-engine/schema'
+import { getListingContent } from '@/lib/listing-content'
+import { resolveSEO, seoToMetadata } from '@/lib/seo'
+import { getStaticPageSeo } from '@/lib/get-page-seo'
 
-export const metadata: Metadata = {
-  title: 'Car Care Blog | Tips, News & Advice | CarWorkshop.ae',
-  description: 'Car care tips, maintenance guides, and automotive news for UAE drivers. Expert advice from certified technicians.',
-  alternates: { canonical: 'https://carworkshop.ae/blog' },
-  openGraph: { title: 'Car Care Blog | CarWorkshop.ae', description: 'Car care tips and automotive news for UAE drivers.', type: 'website', url: 'https://carworkshop.ae/blog' },
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = resolveSEO(await getStaticPageSeo('blog-listing'), {
+    title: 'Car Care Blog | Tips, News & Advice | CarWorkshop.ae',
+    description: 'Car care tips, maintenance guides, and automotive news for UAE drivers. Expert advice from certified technicians.',
+    url: 'https://carworkshop.ae/blog',
+  })
+  return seoToMetadata(seo, 'https://carworkshop.ae/blog')
 }
 
+export const revalidate = 3600
+
 export default async function BlogPage() {
-  const supabase = await createServerSupabase()
+  const supabase = await createPublicSupabase()
   const { data: posts } = await supabase
     .from('blog_posts')
     .select('*')
@@ -21,17 +30,26 @@ export default async function BlogPage() {
     .order('published_at', { ascending: false })
     .limit(12)
 
+  const lc = await getListingContent('blog-listing')
+
+  const schema = generateCollectionSchema({
+    name: 'Car Care Blog',
+    description: 'Car care tips, maintenance guides, and automotive news for UAE drivers.',
+    path: '/blog',
+    items: (posts ?? []).map(p => ({ name: p.title, path: `/blog/${p.slug}` })),
+  })
+
   return (
     <div>
-      <div className="bg-[#F0F4FF] py-10 border-b border-[#C7D9F5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Blog' }]} />
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1F2937] mt-4">Car Care Blog</h1>
-          <p className="text-[#6B7280] mt-2">Expert tips, maintenance guides, and automotive news for UAE drivers.</p>
-        </div>
-      </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <PageHeader
+        breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Blog' }]}
+        title={lc.hero?.h1 || 'Car Care Blog'}
+        subtitle={lc.hero?.subtitle || 'Expert tips, maintenance guides, and automotive news for UAE drivers.'}
+        showTrust={false}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {(!posts || posts.length === 0) ? (
           <p className="text-center text-[#6B7280] py-20">No posts published yet. Check back soon.</p>
         ) : (
@@ -66,6 +84,12 @@ export default async function BlogPage() {
           </div>
         )}
       </div>
+
+      <CTABanner
+        {...(lc.cta_banner?.headline ? { title: lc.cta_banner.headline } : {})}
+        {...(lc.cta_banner?.button_text ? { ctaLabel: lc.cta_banner.button_text } : {})}
+        {...(lc.cta_banner?.button_link ? { ctaHref: lc.cta_banner.button_link } : {})}
+      />
     </div>
   )
 }

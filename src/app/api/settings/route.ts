@@ -1,25 +1,22 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { getSettings } from '@/lib/hooks/useSettings'
+import { PUBLIC_SETTING_KEYS, type SiteSettings } from '@/types/settings'
 
+export const revalidate = 3600
+
+// Public settings — only non-sensitive keys, used by Header, Footer, floating buttons.
 export async function GET() {
   try {
-    const supabase = await createServerSupabase()
-    const { data, error } = await supabase
-      .from('website_settings')
-      .select('key, value')
-
-    if (error) {
-      console.error('Settings fetch error:', error)
-      return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
+    const all = await getSettings()
+    const publicSettings: Partial<Record<keyof SiteSettings, unknown>> = {}
+    for (const key of PUBLIC_SETTING_KEYS) {
+      publicSettings[key] = all[key]
     }
-
-    const settings = Object.fromEntries((data ?? []).map(s => [s.key, s.value]))
-
-    return NextResponse.json(settings, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+    return NextResponse.json(publicSettings, {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
     })
   } catch (err) {
-    console.error('Settings route error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('GET /api/settings:', err)
+    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
   }
 }

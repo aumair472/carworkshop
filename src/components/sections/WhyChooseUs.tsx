@@ -56,31 +56,58 @@ const REASONS = [
   },
 ]
 
-export function WhyChooseUs() {
+// Accepts either the home/about USP shape ({ icon, text }) or the richer hub
+// shape ({ icon, title, description }). Falls back to the hardcoded REASONS.
+interface WhyChooseUsItem { icon?: string; title?: string; description?: string; text?: string }
+interface WhyChooseUsProps {
+  heading?: string
+  items?: WhyChooseUsItem[]
+}
+
+export function WhyChooseUs({ heading, items }: WhyChooseUsProps = {}) {
+  const useCustom = items && items.length > 0
   return (
-    <section className="py-14 lg:py-20" aria-labelledby="why-heading">
+    <section className="py-16 lg:py-24 bg-[#F8FAFC]" aria-labelledby="why-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 id="why-heading" className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] mb-3">
-            Why Choose CarWorkshop.ae?
+        <div className="text-center mb-12 max-w-2xl mx-auto">
+          <h2 id="why-heading" className="display-tight text-balance text-3xl sm:text-4xl font-extrabold text-[#0F172A] mb-3">
+            {heading || 'Why Choose CarWorkshop.ae?'}
           </h2>
-          <p className="text-[#6B7280] max-w-xl mx-auto">
+          <p className="text-pretty text-[#64748B] text-lg">
             Trusted by over 50,000 car owners across the UAE for reliable, affordable car care.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {REASONS.map(reason => (
-            <div key={reason.title} className="flex gap-4">
-              <div className="shrink-0 w-12 h-12 rounded-xl bg-[#EEF3FB] flex items-center justify-center">
-                {reason.icon}
-              </div>
-              <div>
-                <h3 className="font-bold text-[#1F2937] mb-1">{reason.title}</h3>
-                <p className="text-sm text-[#6B7280] leading-relaxed">{reason.description}</p>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+          {useCustom
+            ? items.map((it, i) => (
+                <div key={i} className="card-premium flex gap-4 p-6">
+                  <div className="shrink-0 w-12 h-12 rounded-2xl bg-[#EEF3FB] ring-1 ring-[#DCE6F6] flex items-center justify-center text-2xl">
+                    {it.icon || '✅'}
+                  </div>
+                  {it.title ? (
+                    <div>
+                      <h3 className="font-bold text-[#0F172A] mb-1">{it.title}</h3>
+                      {it.description && <p className="text-sm text-[#64748B] leading-relaxed">{it.description}</p>}
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <p className="text-sm text-[#334155] leading-relaxed font-medium">{it.text}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            : REASONS.map(reason => (
+                <div key={reason.title} className="card-premium flex gap-4 p-6">
+                  <div className="shrink-0 w-12 h-12 rounded-2xl bg-[#EEF3FB] ring-1 ring-[#DCE6F6] flex items-center justify-center">
+                    {reason.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#0F172A] mb-1">{reason.title}</h3>
+                    <p className="text-sm text-[#64748B] leading-relaxed">{reason.description}</p>
+                  </div>
+                </div>
+              ))}
         </div>
       </div>
     </section>

@@ -30,8 +30,8 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           maxLength={maxLength}
           {...props}
           className={[
-            'w-full px-3 py-2.5 rounded-md border text-[#1F2937] text-base resize-y min-h-[100px]',
-            'focus:outline-none focus:ring-2 focus:ring-[#4472C4] focus:border-[#4472C4]',
+            'w-full px-3.5 py-3 rounded-xl border text-[#1F2937] text-base resize-y min-h-[100px] transition-all',
+            'focus:outline-none focus:ring-2 focus:ring-[#4472C4] focus:border-transparent',
             'placeholder:text-[#9CA3AF]',
             'disabled:bg-[#F9FAFB] disabled:cursor-not-allowed',
             error ? 'border-[#DC2626] bg-[#FEF2F2]' : 'border-[#E5E7EB] bg-white',

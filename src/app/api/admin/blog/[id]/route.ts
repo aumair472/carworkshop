@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { UpdateBlogPostSchema } from '@/lib/schemas/blog'
 import { sanitizeHTML } from '@/lib/sanitize'
 import { logAudit } from '@/lib/audit'
+import { revalidatePage } from '@/lib/revalidate'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -40,6 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     await logAudit({ userId: user.id, action: 'update', table: 'blog_posts', recordId: id })
+    await revalidatePage('blog', data.slug)
 
     return NextResponse.json(data)
   } catch (err) {

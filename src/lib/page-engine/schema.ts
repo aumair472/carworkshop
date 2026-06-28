@@ -104,6 +104,41 @@ export function generateOrganizationSchema(): Record<string, unknown> {
   }
 }
 
+export function generateCollectionSchema(opts: {
+  name: string
+  description: string
+  path: string
+  items: Array<{ name: string; path: string }>
+}): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        name: opts.name,
+        description: opts.description,
+        url: `${SITE_URL}${opts.path}`,
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: opts.items.map((item, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: item.name,
+            url: `${SITE_URL}${item.path}`,
+          })),
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: opts.name, item: `${SITE_URL}${opts.path}` },
+        ],
+      },
+    ],
+  }
+}
+
 export function generateLocalBusinessSchema(location: { name: string; address?: string | null; lat?: number | null; lng?: number | null }): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',

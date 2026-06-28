@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PageContentJsonSchema } from './page-content'
 
 export const CreateBrandSchema = z.object({
   name: z.string().min(1, 'Brand name is required').max(100).trim(),
@@ -12,6 +13,7 @@ export const CreateBrandSchema = z.object({
   og_image_url: z.string().url().optional().nullable(),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
   sort_order: z.number().int().min(0).default(0),
+  content_json: PageContentJsonSchema.optional(),
 })
 
 export const UpdateBrandSchema = CreateBrandSchema.partial()

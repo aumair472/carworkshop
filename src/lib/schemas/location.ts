@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PageContentJsonSchema } from './page-content'
 
 const FAQItemSchema = z.object({
   question: z.string().min(1).max(500),
@@ -19,6 +20,7 @@ export const CreateLocationSchema = z.object({
   seo_description: z.string().max(160).trim().optional().nullable(),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
   sort_order: z.number().int().min(0).default(0),
+  content_json: PageContentJsonSchema.optional(),
 })
 
 export const UpdateLocationSchema = CreateLocationSchema.partial()

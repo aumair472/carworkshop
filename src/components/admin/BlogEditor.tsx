@@ -2,14 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
+import { RichTextEditor } from '@/components/admin/RichTextEditor'
+import { EntitySeoTab } from '@/components/admin/EntitySeoTab'
+import { SeoEditorBanner, useActingRole } from '@/components/admin/seo-editor-ui'
 import type { BlogPost } from '@/types'
+import type { SeoJson } from '@/lib/schemas/seo'
 
 const STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
@@ -19,23 +21,32 @@ const STATUS_OPTIONS = [
 
 interface BlogEditorProps {
   post?: BlogPost
+  users?: Array<{ id: string; full_name: string }>
 }
 
-export function BlogEditor({ post }: BlogEditorProps) {
+export function BlogEditor({ post, users = [] }: BlogEditorProps) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [content, setContent] = useState(post?.content ?? '')
+  const { isSEOEditor } = useActingRole()
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: post?.content ?? '',
-    editorProps: {
-      attributes: {
-        class: 'min-h-[400px] p-4 focus:outline-none prose prose-slate max-w-none',
-      },
-    },
-  })
+  // SEO editors get a focused SEO-only view (only meaningful on an existing post).
+  if (isSEOEditor && post) {
+    return (
+      <div>
+        <SeoEditorBanner />
+        <EntitySeoTab
+          endpoint={`/api/admin/blog/${post.id}/seo`}
+          initial={(post.seo_json ?? {}) as SeoJson}
+          pageUrl={`https://carworkshop.ae/blog/${post.slug}`}
+          defaultTitle={`${post.title} | CarWorkshop.ae`}
+          autoSchemas={['Article', 'BreadcrumbList']}
+        />
+      </div>
+    )
+  }
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -48,10 +59,11 @@ export function BlogEditor({ post }: BlogEditorProps) {
       title: fd.get('title') as string,
       slug: fd.get('slug') as string,
       excerpt: fd.get('excerpt') as string,
-      content: editor?.getHTML() ?? '',
+      content,
       status: fd.get('status') as string,
       seo_title: fd.get('seo_title') as string || null,
       seo_description: fd.get('seo_description') as string || null,
+      author_id: (fd.get('author_id') as string) || null,
     }
 
     try {
@@ -81,6 +93,7 @@ export function BlogEditor({ post }: BlogEditorProps) {
   }
 
   return (
+    <div className="space-y-6">
     <form onSubmit={handleSave} className="space-y-5">
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">Saved successfully!</Alert>}
@@ -91,35 +104,18 @@ export function BlogEditor({ post }: BlogEditorProps) {
 
           <div>
             <label className="text-sm font-semibold text-[#1F2937] block mb-1">Content</label>
-            <div className="border border-[#E5E7EB] rounded-md overflow-hidden">
-              <div className="flex gap-1 p-2 border-b border-[#E5E7EB] bg-[#F9FAFB] flex-wrap">
-                {[
-                  { label: 'B', action: () => editor?.chain().focus().toggleBold().run() },
-                  { label: 'I', action: () => editor?.chain().focus().toggleItalic().run() },
-                  { label: 'H2', action: () => editor?.chain().focus().toggleHeading({ level: 2 }).run() },
-                  { label: 'H3', action: () => editor?.chain().focus().toggleHeading({ level: 3 }).run() },
-                  { label: 'UL', action: () => editor?.chain().focus().toggleBulletList().run() },
-                  { label: 'OL', action: () => editor?.chain().focus().toggleOrderedList().run() },
-                  { label: '""', action: () => editor?.chain().focus().toggleBlockquote().run() },
-                  { label: '—', action: () => editor?.chain().focus().setHorizontalRule().run() },
-                ].map(btn => (
-                  <button
-                    key={btn.label}
-                    type="button"
-                    onClick={btn.action}
-                    className="px-2 py-1 text-xs font-semibold border border-[#E5E7EB] rounded hover:bg-[#EEF3FB] hover:border-[#4472C4] hover:text-[#4472C4] transition-colors"
-                  >
-                    {btn.label}
-                  </button>
-                ))}
-              </div>
-              <EditorContent editor={editor} />
-            </div>
+            <RichTextEditor value={content} onChange={setContent} placeholder="Write the post…" minHeight={400} />
           </div>
         </div>
 
         <div className="space-y-5">
           <Select label="Status" name="status" options={STATUS_OPTIONS} defaultValue={post?.status ?? 'draft'} />
+          <Select
+            label="Author"
+            name="author_id"
+            options={[{ value: '', label: 'Default (site author)' }, ...users.map(u => ({ value: u.id, label: u.full_name }))]}
+            defaultValue={post?.author_id ?? ''}
+          />
           <Input label="URL Slug" name="slug" required defaultValue={post?.slug} placeholder="my-post-slug" />
           <Textarea label="Excerpt" name="excerpt" defaultValue={post?.excerpt ?? ''} maxLength={300} charCount />
           <Input label="SEO Title" name="seo_title" defaultValue={post?.seo_title ?? ''} placeholder="Override meta title..." />
@@ -133,5 +129,21 @@ export function BlogEditor({ post }: BlogEditorProps) {
         </div>
       </div>
     </form>
+
+    {post && (
+      <details className="bg-white rounded-lg border border-[#E5E7EB] shadow-card">
+        <summary className="cursor-pointer px-5 py-3.5 text-sm font-semibold text-[#1F2937]">Advanced SEO (robots, schema, social)</summary>
+        <div className="px-5 pb-5 border-t border-[#E5E7EB] pt-4">
+          <EntitySeoTab
+            endpoint={`/api/admin/blog/${post.id}/seo`}
+            initial={(post.seo_json ?? {}) as SeoJson}
+            pageUrl={`https://carworkshop.ae/blog/${post.slug}`}
+            defaultTitle={`${post.title} | CarWorkshop.ae`}
+            autoSchemas={['Article', 'BreadcrumbList']}
+          />
+        </div>
+      </details>
+    )}
+    </div>
   )
 }

@@ -19,9 +19,9 @@ const DEFAULT_STEPS: Step[] = [
 
 export function ProcessSteps({ title = 'How It Works', steps = DEFAULT_STEPS }: ProcessStepsProps) {
   return (
-    <section className="py-14 lg:py-20 bg-[#F0F4FF]" aria-labelledby="process-heading">
+    <section className="py-16 lg:py-24 bg-mesh" aria-labelledby="process-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 id="process-heading" className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] text-center mb-12">
+        <h2 id="process-heading" className="display-tight text-balance text-3xl sm:text-4xl font-extrabold text-[#0F172A] text-center mb-14">
           {title}
         </h2>
 
@@ -29,17 +29,17 @@ export function ProcessSteps({ title = 'How It Works', steps = DEFAULT_STEPS }: 
           {steps.map((step, idx) => (
             <div key={step.number} className="relative text-center">
               {idx < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-10 left-1/2 w-full h-0.5 bg-[#C7D9F5]" aria-hidden="true" />
+                <div className="hidden lg:block absolute top-10 left-[calc(50%+40px)] right-0 h-0.5 bg-gradient-to-r from-[#C7D9F5] to-transparent" aria-hidden="true" />
               )}
-              <div className="relative z-10 w-20 h-20 mx-auto mb-4 rounded-full bg-white border-2 border-[#4472C4] flex items-center justify-center shadow-sm">
+              <div className="relative z-10 w-20 h-20 mx-auto mb-5 rounded-3xl bg-white ring-1 ring-[#DCE6F6] flex items-center justify-center shadow-[var(--shadow-elevated)]">
                 {step.icon ? (
                   <span className="text-3xl" role="img" aria-label={step.title}>{step.icon}</span>
                 ) : (
                   <span className="text-2xl font-extrabold text-[#4472C4]">{step.number}</span>
                 )}
               </div>
-              <h3 className="font-bold text-[#1F2937] mb-2">{step.title}</h3>
-              <p className="text-sm text-[#6B7280] leading-relaxed">{step.description}</p>
+              <h3 className="font-bold text-[#0F172A] mb-2">{step.title}</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed max-w-[16rem] mx-auto">{step.description}</p>
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createPublicSupabase } from '@/lib/supabase/public'
 import { createServiceClient } from '@/lib/supabase/service'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { ModelGrid } from '@/components/sections/ModelGrid'
@@ -9,7 +9,8 @@ import { WhyChooseUs } from '@/components/sections/WhyChooseUs'
 import { CTABanner } from '@/components/sections/CTABanner'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { generateServicePageSchema } from '@/lib/page-engine/schema'
-import type { Service, ServiceWithPrice, BrandModel } from '@/types'
+import { resolveSEO, seoToMetadata } from '@/lib/seo'
+import type { Service, ServiceWithPrice, BrandModel, PageContent } from '@/types'
 
 interface PageProps {
   params: Promise<{ brand: string }>
@@ -17,25 +18,23 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { brand: brandSlug } = await params
-  const supabase = await createServerSupabase()
+  const supabase = await createPublicSupabase()
   const { data: brand } = await supabase
     .from('brands')
-    .select('name, seo_title, seo_description')
+    .select('id, name, seo_title, seo_description, seo_json')
     .eq('slug', brandSlug)
     .eq('status', 'published')
     .single()
 
   if (!brand) return { title: 'Brand Not Found' }
 
-  const title = brand.seo_title ?? `${brand.name} Service & Repair in UAE | CarWorkshop.ae`
-  const description = brand.seo_description ?? `Expert ${brand.name} service, repair, and maintenance across UAE. Certified ${brand.name} technicians. Get a free quote today.`
-
-  return {
-    title,
-    description,
-    alternates: { canonical: `https://carworkshop.ae/brands/${brandSlug}` },
-    openGraph: { title, description, type: 'website', url: `https://carworkshop.ae/brands/${brandSlug}` },
-  }
+  const url = `https://carworkshop.ae/brands/${brandSlug}`
+  const seo = resolveSEO(brand.seo_json, {
+    title: brand.seo_title ?? `${brand.name} Service & Repair in UAE | CarWorkshop.ae`,
+    description: brand.seo_description ?? `Expert ${brand.name} service, repair, and maintenance across UAE. Certified ${brand.name} technicians. Get a free quote today.`,
+    url,
+  })
+  return seoToMetadata(seo, url)
 }
 
 export const revalidate = 86400
@@ -55,7 +54,7 @@ interface ServiceMapRow {
 
 export default async function BrandPage({ params }: PageProps) {
   const { brand: brandSlug } = await params
-  const supabase = await createServerSupabase()
+  const supabase = await createPublicSupabase()
 
   const { data: brand } = await supabase
     .from('brands')
@@ -78,6 +77,11 @@ export default async function BrandPage({ params }: PageProps) {
     .filter(sm => sm.services)
     .map(sm => ({ ...(sm.services as Service) }))
 
+  // Editable overlay from the admin Public Page Content editor.
+  const c = (brand.content_json ?? {}) as PageContent
+  const h1 = c.hero?.h1 || `${brand.name} Service & Repair in UAE`
+  const subtitle = c.hero?.subheadline || brand.description || `Expert ${brand.name} maintenance and repair by certified technicians across UAE.`
+
   const schema = generateServicePageSchema({
     brand: brand.name,
     url: `https://carworkshop.ae/brands/${brandSlug}`,
@@ -86,15 +90,15 @@ export default async function BrandPage({ params }: PageProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-      <div className="bg-[#F0F4FF] py-10 border-b border-[#C7D9F5]">
+      <div className="bg-mesh py-8 border-b border-hairline">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Brands', href: '/brands' }, { label: brand.name }]} />
         </div>
       </div>
 
       <HeroSection
-        h1={`${brand.name} Service & Repair in UAE`}
-        subtitle={brand.description ?? `Expert ${brand.name} maintenance and repair by certified technicians across UAE.`}
+        h1={h1}
+        subtitle={subtitle}
         ctaLabel={`Book ${brand.name} Service`}
       />
 
@@ -108,8 +112,12 @@ export default async function BrandPage({ params }: PageProps) {
         brandSlug={brandSlug}
       />
 
-      <WhyChooseUs />
-      <CTABanner title={`Book Your ${brand.name} Service Today`} />
+      <WhyChooseUs heading={c.why_choose_us?.heading} items={c.why_choose_us?.items} />
+      <CTABanner
+        title={c.cta?.headline || `Book Your ${brand.name} Service Today`}
+        {...(c.cta?.button_text ? { ctaLabel: c.cta.button_text } : {})}
+        {...(c.cta?.button_link ? { ctaHref: c.cta.button_link } : {})}
+      />
     </>
   )
 }

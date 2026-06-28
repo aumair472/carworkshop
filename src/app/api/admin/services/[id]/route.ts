@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { UpdateServiceSchema } from '@/lib/schemas/service'
 import { sanitizeHTML } from '@/lib/sanitize'
 import { logAudit } from '@/lib/audit'
+import { revalidatePage } from '@/lib/revalidate'
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -52,6 +53,8 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     await logAudit({ userId: user.id, action: 'update', table: 'services', recordId: id })
+    await revalidatePage('service', data.slug)
+    await revalidatePage('static', 'home')
     return NextResponse.json({ service: data })
   } catch (err) {
     console.error('PATCH /api/admin/services/[id]:', err)

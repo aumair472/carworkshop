@@ -1,7 +1,9 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
-import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import { AdminBadge } from '@/components/admin/ui/AdminBadge'
+import { AdminLinkButton } from '@/components/admin/ui/AdminButton'
+import { EmptyState } from '@/components/admin/ui/AdminStates'
+import { MapPin, Plus, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import type { ContentStatus } from '@/types'
 
@@ -11,52 +13,45 @@ export default async function LocationsAdminPage() {
   const supabase = await createServerSupabase()
   const { data: locations, count } = await supabase
     .from('locations')
-    .select('*', { count: 'exact' })
+    .select('id, name, slug, emirate, status', { count: 'exact' })
     .order('sort_order')
 
   return (
     <div className="flex flex-col flex-1">
-      <AdminTopbar
-        title={`Locations (${count ?? 0})`}
-        actions={
-          <Link href="/admin/locations/new" className="px-4 py-2 rounded-md bg-[#4472C4] text-white text-sm font-semibold hover:bg-[#3563B0] transition-colors">
-            + New Location
-          </Link>
-        }
-      />
+      <AdminTopbar title={`Locations (${count ?? 0})`} actions={<AdminLinkButton href="/admin/locations/new" variant="primary"><Plus size={15} /> New Location</AdminLinkButton>} />
 
-      <div className="p-6">
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                  {['Name', 'Emirate', 'Slug', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6B7280]">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F3F4F6]">
-                {(locations ?? []).map(loc => (
-                  <tr key={loc.id} className="hover:bg-[#F9FAFB]">
-                    <td className="px-4 py-3 font-medium text-[#1F2937]">{loc.name}</td>
-                    <td className="px-4 py-3 text-[#6B7280]">{loc.emirate}</td>
-                    <td className="px-4 py-3 text-[#6B7280] font-mono text-xs">{loc.slug}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={loc.status as ContentStatus}>{loc.status}</Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/locations/${loc.id}`} className="text-[#4472C4] hover:underline text-xs font-medium">Edit</Link>
-                    </td>
+      <div className="p-6 lg:p-8">
+        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+          {!locations?.length ? (
+            <EmptyState icon={<MapPin size={22} />} title="No locations yet" description="Add the emirates and areas you serve." action={<AdminLinkButton href="/admin/locations/new" variant="primary"><Plus size={15} /> Add Location</AdminLinkButton>} />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-zinc-50 border-b border-zinc-200 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    <th className="px-5 py-3">Name</th><th className="px-5 py-3">Emirate</th><th className="px-5 py-3">Slug</th><th className="px-5 py-3">Status</th><th className="px-5 py-3 text-right">Actions</th>
                   </tr>
-                ))}
-                {!locations?.length && (
-                  <tr><td colSpan={5} className="px-4 py-12 text-center text-[#9CA3AF]">No locations yet</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {locations.map(l => (
+                    <tr key={l.id} className="hover:bg-zinc-50">
+                      <td className="px-5 py-3 font-medium text-zinc-900">{l.name}</td>
+                      <td className="px-5 py-3 text-zinc-600">{l.emirate}</td>
+                      <td className="px-5 py-3 text-zinc-400 font-mono text-xs">/{l.slug}</td>
+                      <td className="px-5 py-3"><AdminBadge kind={l.status as ContentStatus} /></td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center justify-end gap-3 text-xs font-medium">
+                          <Link href={`/admin/locations/${l.id}`} className="text-[#4472C4] hover:underline">Edit</Link>
+                          <a href={`/locations/${l.slug}`} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-600"><ExternalLink size={14} /></a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

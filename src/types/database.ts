@@ -8,7 +8,7 @@ export type Json =
 
 type ContentStatus = 'draft' | 'published' | 'archived'
 type LeadStatus = 'new' | 'contacted' | 'in_progress' | 'converted' | 'closed'
-type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff'
+type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff' | 'seo_editor'
 type AuditAction = 'create' | 'update' | 'delete' | 'publish' | 'unpublish' | 'generate'
 type PageTypeEnum = 'brand' | 'brand_service' | 'brand_location' | 'model' | 'model_service' | 'model_location' | 'model_service_location' | 'service' | 'location'
 
@@ -27,6 +27,8 @@ export type Database = {
           seo_title: string | null
           seo_description: string | null
           og_image_url: string | null
+          content_json: Json | null
+          seo_json: Json | null
           status: ContentStatus
           sort_order: number
           created_by: string | null
@@ -44,6 +46,8 @@ export type Database = {
           seo_title?: string | null
           seo_description?: string | null
           og_image_url?: string | null
+          content_json?: Json | null
+          seo_json?: Json | null
           status?: ContentStatus
           sort_order?: number
           created_by?: string | null
@@ -61,6 +65,8 @@ export type Database = {
           seo_title?: string | null
           seo_description?: string | null
           og_image_url?: string | null
+          content_json?: Json | null
+          seo_json?: Json | null
           status?: ContentStatus
           sort_order?: number
           created_by?: string | null
@@ -131,6 +137,8 @@ export type Database = {
           seo_description: string | null
           og_image_url: string | null
           schema_type: string
+          content_json: Json | null
+          seo_json: Json | null
           status: ContentStatus
           sort_order: number
           created_at: string
@@ -151,6 +159,8 @@ export type Database = {
           seo_description?: string | null
           og_image_url?: string | null
           schema_type?: string
+          content_json?: Json | null
+          seo_json?: Json | null
           status?: ContentStatus
           sort_order?: number
           created_at?: string
@@ -171,6 +181,8 @@ export type Database = {
           seo_description?: string | null
           og_image_url?: string | null
           schema_type?: string
+          content_json?: Json | null
+          seo_json?: Json | null
           status?: ContentStatus
           sort_order?: number
           updated_at?: string
@@ -191,6 +203,8 @@ export type Database = {
           faq_json: Json
           seo_title: string | null
           seo_description: string | null
+          content_json: Json | null
+          seo_json: Json | null
           status: ContentStatus
           sort_order: number
           created_at: string
@@ -209,6 +223,8 @@ export type Database = {
           faq_json?: Json
           seo_title?: string | null
           seo_description?: string | null
+          content_json?: Json | null
+          seo_json?: Json | null
           status?: ContentStatus
           sort_order?: number
           created_at?: string
@@ -227,6 +243,8 @@ export type Database = {
           faq_json?: Json
           seo_title?: string | null
           seo_description?: string | null
+          content_json?: Json | null
+          seo_json?: Json | null
           status?: ContentStatus
           sort_order?: number
           updated_at?: string
@@ -307,6 +325,7 @@ export type Database = {
           meta_description: string
           og_image_url: string | null
           content_json: Json | null
+          seo_json: Json | null
           template_id: string | null
           status: ContentStatus
           generated_at: string
@@ -325,6 +344,7 @@ export type Database = {
           meta_description: string
           og_image_url?: string | null
           content_json?: Json | null
+          seo_json?: Json | null
           template_id?: string | null
           status?: ContentStatus
           generated_at?: string
@@ -342,6 +362,7 @@ export type Database = {
           meta_description?: string
           og_image_url?: string | null
           content_json?: Json | null
+          seo_json?: Json | null
           template_id?: string | null
           status?: ContentStatus
           updated_at?: string
@@ -378,6 +399,8 @@ export type Database = {
           title: string
           slug: string
           sections_json: Json
+          content_json: Json | null
+          seo_json: Json | null
           seo_title: string | null
           seo_description: string | null
           og_image_url: string | null
@@ -390,6 +413,8 @@ export type Database = {
           title: string
           slug: string
           sections_json?: Json
+          content_json?: Json | null
+          seo_json?: Json | null
           seo_title?: string | null
           seo_description?: string | null
           og_image_url?: string | null
@@ -401,6 +426,8 @@ export type Database = {
           title?: string
           slug?: string
           sections_json?: Json
+          content_json?: Json | null
+          seo_json?: Json | null
           seo_title?: string | null
           seo_description?: string | null
           og_image_url?: string | null
@@ -439,6 +466,7 @@ export type Database = {
           excerpt: string | null
           content: string | null
           featured_image: string | null
+          seo_json: Json | null
           author_id: string | null
           category_id: string | null
           seo_title: string | null
@@ -456,6 +484,7 @@ export type Database = {
           excerpt?: string | null
           content?: string | null
           featured_image?: string | null
+          seo_json?: Json | null
           author_id?: string | null
           category_id?: string | null
           seo_title?: string | null
@@ -472,6 +501,7 @@ export type Database = {
           excerpt?: string | null
           content?: string | null
           featured_image?: string | null
+          seo_json?: Json | null
           author_id?: string | null
           category_id?: string | null
           seo_title?: string | null

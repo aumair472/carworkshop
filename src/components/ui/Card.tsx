@@ -17,9 +17,9 @@ export function Card({ padding = 'md', hover = false, className = '', children, 
     <div
       {...props}
       className={[
-        'bg-white rounded-lg border border-[#E5E7EB]',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.10),_0_1px_2px_rgba(0,0,0,0.06)]',
-        hover ? 'transition-shadow duration-150 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),_0_4px_6px_-2px_rgba(0,0,0,0.05)]' : '',
+        'bg-white rounded-2xl border border-hairline',
+        'shadow-[var(--shadow-card)]',
+        hover ? 'transition-all duration-250 hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 hover:border-[#DCE6F6]' : '',
         paddings[padding],
         className,
       ].join(' ')}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
-import { revalidatePath } from 'next/cache'
+import { revalidatePage } from '@/lib/revalidate'
 import { logAudit } from '@/lib/audit'
 
 const BulkSchema = z.object({
@@ -22,11 +22,13 @@ export async function POST(req: NextRequest) {
     }
 
     const client = createServiceClient()
-    const { error } = await client.from('generated_pages').update({ status: 'published' }).in('id', parsed.data.ids)
+    const { data: updated, error } = await client.from('generated_pages').update({ status: 'published' }).in('id', parsed.data.ids).select('slug')
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    revalidatePath('/brands', 'page')
-    revalidatePath('/services', 'page')
+    // Revalidate every published page + the brand hub / home it surfaces on.
+    for (const row of updated ?? []) { await revalidatePage('generated', row.slug) }
+    await revalidatePage('static', 'home')
+    await revalidatePage('static', 'brands')
     await logAudit({ userId: user.id, action: 'publish', table: 'generated_pages', recordId: parsed.data.ids.join(',') })
 
     return NextResponse.json({ success: true, count: parsed.data.ids.length })

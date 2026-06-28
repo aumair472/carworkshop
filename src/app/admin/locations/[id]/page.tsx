@@ -2,36 +2,52 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
-import { Input } from '@/components/ui/Input'
-import { Textarea } from '@/components/ui/Textarea'
-import { Button } from '@/components/ui/Button'
-import { Alert } from '@/components/ui/Alert'
-import { Select } from '@/components/ui/Select'
+import toast from 'react-hot-toast'
 import { SlugField } from '@/components/admin/SlugField'
-import { SEOFields } from '@/components/admin/SEOFields'
-import { StatusToggle } from '@/components/admin/StatusToggle'
 import { FAQRepeater } from '@/components/admin/FAQRepeater'
 import { ConfirmModal } from '@/components/admin/ConfirmModal'
+import { PageContentEditor } from '@/components/admin/PageContentEditor'
+import { RichTextEditor } from '@/components/admin/RichTextEditor'
+import { AdminCard } from '@/components/admin/ui/AdminCard'
+import { AdminTabs } from '@/components/admin/ui/AdminTabs'
+import { AdminInput, AdminSelect, AdminLabel } from '@/components/admin/ui/AdminField'
+import { EditorChrome, StatusCard, SeoCard, InfoCard } from '@/components/admin/EditorChrome'
+import { EntitySeoTab } from '@/components/admin/EntitySeoTab'
+import { SeoEditorBanner, useActingRole } from '@/components/admin/seo-editor-ui'
+import { EditorSkeleton } from '@/app/admin/brands/[id]/page'
+import type { PageContent } from '@/types'
+import type { SeoJson } from '@/lib/schemas/seo'
 
 type Status = 'draft' | 'published' | 'archived'
 type Emirate = 'Dubai' | 'Abu Dhabi' | 'Sharjah' | 'Ajman' | 'Ras Al Khaimah' | 'Umm Al Quwain' | 'Fujairah'
 interface FAQItem { question: string; answer: string }
-interface Location { id: string; name: string; slug: string; emirate: Emirate; address: string | null; description: string | null; seo_title: string | null; seo_description: string | null; status: Status; faq_json: FAQItem[] | null }
+interface Location {
+  id: string; name: string; slug: string; emirate: Emirate; address: string | null
+  lat: number | null; lng: number | null; description: string | null; maps_embed_url: string | null
+  faq_json: FAQItem[] | null; seo_title: string | null; seo_description: string | null
+  status: Status; content_json: PageContent | null; seo_json: SeoJson | null
+}
 
-const EMIRATE_OPTIONS = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Umm Al Quwain', 'Fujairah'].map(e => ({ value: e, label: e }))
+const EMIRATES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Umm Al Quwain', 'Fujairah'].map(e => ({ value: e, label: e }))
+const ALL_TABS = [
+  { id: 'info', label: 'Location Info' },
+  { id: 'content', label: 'Page Content' },
+  { id: 'seo', label: 'SEO' },
+]
 
 export default function EditLocationPage() {
   const router = useRouter()
-  const params = useParams()
-  const id = String(params.id)
+  const id = String(useParams().id)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [loc, setLoc] = useState<Location | null>(null)
+  const [tab, setTab] = useState('info')
+  const { isSEOEditor } = useActingRole()
+  const TABS = isSEOEditor ? ALL_TABS.filter(t => t.id === 'seo') : ALL_TABS
+  const activeTab = isSEOEditor ? 'seo' : tab
 
-  const loadLocation = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/locations/${id}`)
       if (!res.ok) { router.push('/admin/locations'); return }
@@ -40,57 +56,103 @@ export default function EditLocationPage() {
     } finally { setLoading(false) }
   }, [id, router])
 
-  useEffect(() => { void loadLocation() }, [loadLocation])
+  useEffect(() => { void load() }, [load])
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault()
+  const save = useCallback(async (nextStatus?: Status) => {
     if (!loc) return
-    setSaving(true); setError('')
+    setSaving(true)
+    const t = toast.loading('Saving…')
     try {
       const res = await fetch(`/api/admin/locations/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: loc.name, slug: loc.slug, emirate: loc.emirate, address: loc.address, description: loc.description, seo_title: loc.seo_title, seo_description: loc.seo_description, status: loc.status, faq_json: loc.faq_json ?? [] }),
+        body: JSON.stringify({ ...loc, status: nextStatus ?? loc.status, faq_json: loc.faq_json ?? [], content_json: loc.content_json ?? {} }),
       })
       const data = await res.json() as { location?: Location; error?: string }
-      if (!res.ok) { setError(data.error ?? 'Failed to save'); return }
+      if (!res.ok) { toast.error(data.error ?? 'Save failed', { id: t }); return }
       setLoc(data.location!)
-    } catch { setError('Network error.') } finally { setSaving(false) }
-  }
+      toast.success(nextStatus === 'published' ? 'Published! Changes are live.' : 'Location saved', { id: t })
+    } catch { toast.error('Network error', { id: t }) } finally { setSaving(false) }
+  }, [loc, id])
 
   async function handleDelete() {
-    await fetch(`/api/admin/locations/${id}`, { method: 'DELETE' })
-    router.push('/admin/locations')
+    try { await fetch(`/api/admin/locations/${id}`, { method: 'DELETE' }); toast.success('Location deleted'); router.push('/admin/locations') }
+    catch { toast.error('Delete failed') }
   }
 
-  if (loading) return <div className="text-[#9CA3AF] p-8">Loading...</div>
+  if (loading) return <EditorSkeleton />
   if (!loc) return null
+  const set = (p: Partial<Location>) => setLoc(l => l ? { ...l, ...p } : l)
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Link href="/admin/locations" className="text-sm text-[#4472C4] hover:underline">← Locations</Link>
-          <h1 className="text-2xl font-bold text-[#1F2937] mt-1">{loc.name}</h1>
-        </div>
-        <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>Delete</Button>
+    <EditorChrome
+      breadcrumb={[{ label: 'Locations', href: '/admin/locations' }, { label: loc.name }]}
+      title={loc.name}
+      onDelete={isSEOEditor ? undefined : () => setConfirmDelete(true)}
+      onSaveDraft={isSEOEditor ? undefined : () => void save('draft')}
+      onPublish={isSEOEditor ? undefined : () => void save('published')}
+      saving={saving}
+      sidebar={
+        <>
+          <StatusCard status={loc.status} onChange={s => set({ status: s })} viewHref={`/locations/${loc.slug}`} />
+          <SeoCard slug={`locations/${loc.slug}`} title={loc.seo_title ?? ''} description={loc.seo_description ?? ''} onTitle={v => set({ seo_title: v })} onDescription={v => set({ seo_description: v })} />
+          <InfoCard rows={[{ k: 'Type', v: 'Location' }, { k: 'Emirate', v: loc.emirate }, { k: 'URL', v: `/locations/${loc.slug}`, mono: true }]} />
+        </>
+      }
+    >
+      {isSEOEditor && <SeoEditorBanner />}
+      <AdminTabs tabs={TABS} active={activeTab} onChange={setTab} />
+      <div className="mt-5 space-y-5">
+        {activeTab === 'seo' && (
+          <EntitySeoTab
+            endpoint={`/api/admin/locations/${id}/seo`}
+            initial={loc.seo_json ?? {}}
+            pageUrl={`https://carworkshop.ae/locations/${loc.slug}`}
+            defaultTitle={`Car Service in ${loc.name} | CarWorkshop.ae`}
+            autoSchemas={['LocalBusiness', 'FAQPage', 'BreadcrumbList']}
+          />
+        )}
+        {activeTab === 'info' && (
+          <AdminCard title="Location Details">
+            <div className="space-y-4">
+              <AdminInput label="Location Name" required value={loc.name} onChange={e => set({ name: e.target.value })} />
+              <div>
+                <AdminLabel>Slug</AdminLabel>
+                <SlugField name="slug" value={loc.slug} sourceValue={loc.name} onChange={v => set({ slug: v })} />
+                <p className="text-xs text-zinc-400 mt-1">carworkshop.ae/locations/{loc.slug}</p>
+              </div>
+              <AdminSelect label="Emirate" required value={loc.emirate} options={EMIRATES} onChange={e => set({ emirate: e.target.value as Emirate })} />
+              <AdminInput label="Address" value={loc.address ?? ''} onChange={e => set({ address: e.target.value })} />
+              <div className="grid grid-cols-2 gap-4">
+                <AdminInput label="Latitude" type="number" hint="LocalBusiness schema" value={loc.lat ?? ''} onChange={e => set({ lat: e.target.value ? parseFloat(e.target.value) : null })} />
+                <AdminInput label="Longitude" type="number" value={loc.lng ?? ''} onChange={e => set({ lng: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+              <div>
+                <AdminLabel>Description</AdminLabel>
+                <RichTextEditor value={loc.description ?? ''} onChange={v => set({ description: v })} placeholder="Car service and repair across all areas…" />
+              </div>
+              <AdminInput label="Google Maps Embed URL" value={loc.maps_embed_url ?? ''} placeholder="https://www.google.com/maps/embed?…" onChange={e => set({ maps_embed_url: e.target.value })} />
+              {loc.maps_embed_url && loc.maps_embed_url.startsWith('https://') && (
+                <div className="rounded-lg overflow-hidden border border-zinc-200 aspect-video">
+                  <iframe src={loc.maps_embed_url} title="Map preview" className="w-full h-full" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                </div>
+              )}
+            </div>
+          </AdminCard>
+        )}
+
+        {tab === 'content' && (
+          <AdminCard title="Public Page Content" description={`These sections appear on /locations/${loc.slug}`}>
+            <PageContentEditor value={loc.content_json ?? {}} onChange={c => set({ content_json: c })} forceOpen />
+            <div className="mt-6 pt-5 border-t border-zinc-200">
+              <AdminLabel>FAQ Items</AdminLabel>
+              <FAQRepeater items={loc.faq_json ?? []} onChange={items => set({ faq_json: items })} />
+            </div>
+          </AdminCard>
+        )}
       </div>
-      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
-      <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
-        <Input label="Location Name" value={loc.name} onChange={e => setLoc(l => l ? { ...l, name: e.target.value } : l)} required />
-        <SlugField name="slug" value={loc.slug} sourceValue={loc.name} onChange={v => setLoc(l => l ? { ...l, slug: v } : l)} />
-        <Select label="Emirate" name="emirate" value={loc.emirate} onChange={e => setLoc(l => l ? { ...l, emirate: e.target.value as Emirate } : l)} options={EMIRATE_OPTIONS} required />
-        <Textarea label="Address" value={loc.address ?? ''} onChange={e => setLoc(l => l ? { ...l, address: e.target.value } : l)} rows={2} />
-        <Textarea label="Description" value={loc.description ?? ''} onChange={e => setLoc(l => l ? { ...l, description: e.target.value } : l)} rows={4} />
-        <FAQRepeater items={loc.faq_json ?? []} onChange={items => setLoc(l => l ? { ...l, faq_json: items } : l)} />
-        <SEOFields title={loc.seo_title ?? ''} description={loc.seo_description ?? ''} onTitleChange={v => setLoc(l => l ? { ...l, seo_title: v } : l)} onDescriptionChange={v => setLoc(l => l ? { ...l, seo_description: v } : l)} />
-        <div>
-          <label className="block text-sm font-medium text-[#374151] mb-2">Status</label>
-          <StatusToggle value={loc.status} onChange={v => setLoc(l => l ? { ...l, status: v } : l)} />
-        </div>
-        <Button type="submit" variant="primary" loading={saving}>Save Changes</Button>
-      </form>
+
       <ConfirmModal open={confirmDelete} title="Delete Location" message={`Delete "${loc.name}"?`} confirmLabel="Delete" variant="danger" onConfirm={handleDelete} onCancel={() => setConfirmDelete(false)} />
-    </div>
+    </EditorChrome>
   )
 }

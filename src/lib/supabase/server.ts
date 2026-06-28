@@ -1,3 +1,5 @@
+// ADMIN ONLY — uses cookies(), which forces dynamic rendering. Never import
+// this from a public (public) page; use createPublicSupabase() there instead.
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'

@@ -32,8 +32,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           id={inputId}
           {...props}
           className={[
-            'w-full px-3 py-2.5 rounded-md border text-[#1F2937] text-base bg-white',
-            'focus:outline-none focus:ring-2 focus:ring-[#4472C4] focus:border-[#4472C4]',
+            'w-full px-3.5 py-3 rounded-xl border text-[#1F2937] text-base bg-white transition-all',
+            'focus:outline-none focus:ring-2 focus:ring-[#4472C4] focus:border-transparent',
             'disabled:bg-[#F9FAFB] disabled:cursor-not-allowed',
             error ? 'border-[#DC2626]' : 'border-[#E5E7EB]',
             className,

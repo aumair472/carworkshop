@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
 import { BlogEditor } from '@/components/admin/BlogEditor'
 import Link from 'next/link'
@@ -13,6 +14,8 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
 
   if (!post) notFound()
 
+  const { data: users } = await createServiceClient().from('users').select('id, full_name').eq('is_active', true).order('full_name')
+
   return (
     <div className="flex flex-col flex-1">
       <AdminTopbar
@@ -24,7 +27,7 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
         }
       />
       <div className="p-6">
-        <BlogEditor post={post} />
+        <BlogEditor post={post} users={users ?? []} />
       </div>
     </div>
   )

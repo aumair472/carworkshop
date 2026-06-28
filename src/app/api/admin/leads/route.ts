@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit
 
     const client = createServiceClient()
-    let query = client.from('form_submissions').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + limit - 1)
+    let query = client.from('form_submissions').select('*, services(name), brands(name)', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + limit - 1)
     if (status) query = query.eq('status', status)
 
     const { data, error, count } = await query

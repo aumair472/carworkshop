@@ -35,7 +35,7 @@ export type UpdateBlogPost = Database['public']['Tables']['blog_posts']['Update'
 
 export type ContentStatus = 'draft' | 'published' | 'archived'
 export type LeadStatus = 'new' | 'contacted' | 'in_progress' | 'converted' | 'closed'
-export type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff'
+export type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff' | 'seo_editor'
 export type PageType = 'brand' | 'brand_service' | 'brand_location' | 'model' | 'model_service' | 'model_location' | 'model_service_location' | 'service' | 'location'
 
 export interface FAQItem {
@@ -46,6 +46,41 @@ export interface FAQItem {
 export interface TrustStat {
   value: string
   label: string
+}
+
+// Editable overlay stored in generated_pages.content_json. Every field is
+// optional; public pages fall back to auto-generated values when absent.
+export interface PageContent {
+  hero?: {
+    h1?: string
+    subheadline?: string
+    image_url?: string | null
+  }
+  main_content?: string | null
+  service_details?: {
+    price?: number | null
+    includes?: string[]
+  }
+  faqs?: Array<{ q: string; a: string }>
+  why_choose_us?: {
+    visible?: boolean
+    heading?: string
+    items?: Array<{ icon?: string; title?: string; description?: string }>
+  }
+  cta?: {
+    headline?: string
+    button_text?: string
+    button_link?: string
+  }
+}
+
+// Static page section model stored in static_pages.sections_json
+export type StaticSectionType = 'hero' | 'text' | 'service_cards' | 'brand_grid' | 'faq' | 'cta'
+
+export interface StaticSection {
+  id: string
+  type: StaticSectionType
+  data: Record<string, unknown>
 }
 
 export interface ServiceWithPrice extends Service {

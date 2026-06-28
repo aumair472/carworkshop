@@ -11,13 +11,13 @@ export function FAQSection({ faqs, title = 'Frequently Asked Questions', subtitl
   if (!faqs.length) return null
 
   return (
-    <section className="py-14 lg:py-20" aria-labelledby="faq-heading">
+    <section className="py-16 lg:py-24" aria-labelledby="faq-heading">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 id="faq-heading" className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] mb-3">
+          <h2 id="faq-heading" className="display-tight text-balance text-3xl sm:text-4xl font-extrabold text-[#0F172A] mb-3">
             {title}
           </h2>
-          {subtitle && <p className="text-[#6B7280]">{subtitle}</p>}
+          {subtitle && <p className="text-pretty text-[#64748B] text-lg">{subtitle}</p>}
         </div>
         <Accordion items={faqs} />
       </div>

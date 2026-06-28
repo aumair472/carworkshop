@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createPublicSupabase } from '@/lib/supabase/public'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sanitizeHTML } from '@/lib/sanitize'
 import { HeroSection } from '@/components/sections/HeroSection'
@@ -13,7 +13,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createServerSupabase()
+  const supabase = await createPublicSupabase()
   const { data: page } = await supabase.from('static_pages').select('title, seo_title, seo_description').eq('slug', `lp/${slug}`).single()
 
   if (!page) return { title: 'Not Found' }
@@ -39,7 +39,7 @@ export async function generateStaticParams() {
 
 export default async function LandingPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createServerSupabase()
+  const supabase = await createPublicSupabase()
   const { data: page } = await supabase.from('static_pages').select('*').eq('slug', `lp/${slug}`).eq('status', 'published').single()
 
   if (!page) notFound()
@@ -59,7 +59,7 @@ export default async function LandingPage({ params }: PageProps) {
 
       {body && (
         <section className="py-12">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 prose prose-slate max-w-none">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 rich-content">
             <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(body) }} />
           </div>
         </section>

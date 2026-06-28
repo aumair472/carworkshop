@@ -2,6 +2,10 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { generateMeta } from './meta'
 import type { InsertGeneratedPage } from '@/types'
 
+export type GeneratedPageTypeToken =
+  | 'model' | 'model_service' | 'model_service_location'
+  | 'brand_service' | 'brand_service_location'
+
 export interface GenerateOptions {
   brandId: string
   modelIds?: string[]
@@ -9,6 +13,8 @@ export interface GenerateOptions {
   locationIds?: string[]
   templateId: string
   includeLocationPages: boolean
+  // When set, only these page types are emitted (used by targeted backfills).
+  includeTypes?: GeneratedPageTypeToken[]
 }
 
 export interface GenerateResult {
@@ -56,6 +62,7 @@ export async function generatePages(options: GenerateOptions): Promise<GenerateR
   }
 
   const brand = data as unknown as BrandWithRelations
+  const want = (t: GeneratedPageTypeToken) => !options.includeTypes || options.includeTypes.includes(t)
 
   const allModels = (brand.brand_models ?? []).filter(m => m.status === 'published')
   const models = options.modelIds ? allModels.filter(m => options.modelIds!.includes(m.id)) : allModels
@@ -71,6 +78,28 @@ export async function generatePages(options: GenerateOptions): Promise<GenerateR
     : allLocationMaps
 
   for (const model of models) {
+    // Model hub page (e.g. /brands/audi/a4) — one per model, editable overlay.
+    if (want('model')) {
+      const modelMeta = generateMeta({
+        type: 'model',
+        brand: { name: brand.name, slug: brand.slug },
+        model: { name: model.name, slug: model.slug },
+      })
+      pages.push({
+        page_type: 'model',
+        brand_id: brand.id,
+        model_id: model.id,
+        service_id: null,
+        location_id: null,
+        slug: `${brand.slug}/${model.slug}`,
+        h1: `${brand.name} ${model.name} Service & Repair in UAE`,
+        meta_title: modelMeta.meta_title,
+        meta_description: modelMeta.meta_description,
+        template_id: options.templateId,
+        status: 'draft',
+      })
+    }
+
     for (const serviceMap of serviceMaps) {
       const service = serviceMap.services
       if (!service) continue
@@ -96,9 +125,9 @@ export async function generatePages(options: GenerateOptions): Promise<GenerateR
         template_id: options.templateId,
         status: 'draft',
       }
-      pages.push(page)
+      if (want('model_service')) pages.push(page)
 
-      if (options.includeLocationPages) {
+      if (options.includeLocationPages && want('model_service_location')) {
         for (const locationMap of locationMaps) {
           const location = locationMap.locations
           if (!location) continue
@@ -122,6 +151,52 @@ export async function generatePages(options: GenerateOptions): Promise<GenerateR
             meta_description: locMeta.meta_description,
           })
         }
+      }
+    }
+  }
+
+  // Brand + Service (e.g. /brands/audi/oil-change) and Brand + Service + Location
+  // (e.g. /brands/audi/oil-change/dubai) — independent of models.
+  for (const serviceMap of serviceMaps) {
+    const service = serviceMap.services
+    if (!service) continue
+
+    if (want('brand_service')) {
+      pages.push({
+        page_type: 'brand_service',
+        brand_id: brand.id,
+        model_id: null,
+        service_id: service.id,
+        location_id: null,
+        slug: `${brand.slug}/${service.slug}`,
+        h1: `${brand.name} ${service.name} in UAE`,
+        meta_title: `${brand.name} ${service.name} in UAE | CarWorkshop.ae`,
+        meta_description: `Expert ${brand.name} ${service.name} in UAE. Free pickup & delivery, 12-month warranty.`,
+        template_id: options.templateId,
+        status: 'draft',
+      })
+    }
+
+    if (options.includeLocationPages && want('brand_service_location')) {
+      for (const locationMap of locationMaps) {
+        const location = locationMap.locations
+        if (!location) continue
+        pages.push({
+          // DB page_type enum has no 'brand_service_location'; reuse 'brand_service'.
+          // The 3-segment slug + non-null location_id identify these rows, and the
+          // public resolver matches by slug (getPageContent), so editing works.
+          page_type: 'brand_service',
+          brand_id: brand.id,
+          model_id: null,
+          service_id: service.id,
+          location_id: location.id,
+          slug: `${brand.slug}/${service.slug}/${location.slug}`,
+          h1: `${brand.name} ${service.name} in ${location.name}`,
+          meta_title: `${brand.name} ${service.name} in ${location.name} | CarWorkshop.ae`,
+          meta_description: `Professional ${brand.name} ${service.name} in ${location.name}. Free pickup, 12-month warranty.`,
+          template_id: options.templateId,
+          status: 'draft',
+        })
       }
     }
   }
@@ -181,8 +256,11 @@ export async function countGeneratedPages(options: GenerateOptions): Promise<num
   const locations = (brand.brand_location_map ?? []).filter(lm => lm.is_active)
   const filteredLocations = options.locationIds ? locations.filter(lm => options.locationIds!.includes(lm.location_id)) : locations
 
+  const modelHubPages = filteredModels.length // one /brands/[brand]/[model] hub per model
   const basePages = filteredModels.length * filteredServices.length
   const locationPages = options.includeLocationPages ? basePages * filteredLocations.length : 0
+  const brandServicePages = filteredServices.length // one /brands/[brand]/[service]
+  const brandServiceLocationPages = options.includeLocationPages ? filteredServices.length * filteredLocations.length : 0
 
-  return basePages + locationPages
+  return modelHubPages + basePages + locationPages + brandServicePages + brandServiceLocationPages
 }

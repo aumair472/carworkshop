@@ -2,20 +2,29 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { ChevronDown, Phone, MessageCircle, Menu, X } from 'lucide-react'
+import type { SiteSettings, NavItem } from '@/types/settings'
 
-const NAV_LINKS = [
-  { label: 'Services', href: '/services' },
-  { label: 'Car Brands', href: '/brands' },
-  { label: 'Locations', href: '/locations' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'About', href: '/about' },
-]
+interface NavService { name: string; slug: string; starting_price: number | null }
+interface NavBrand { name: string; slug: string; logo_url: string | null }
 
-export function Header() {
+interface HeaderProps {
+  settings: SiteSettings
+  services?: NavService[]
+  brands?: NavBrand[]
+}
+
+export function Header({ settings, services = [], brands = [] }: HeaderProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null)
+
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 8)
@@ -28,105 +37,229 @@ export function Header() {
     if (prevPathname.current !== pathname) {
       prevPathname.current = pathname
       setMobileOpen(false)
+      setOpenMenu(null)
     }
   }, [pathname])
 
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow }
+  }, [mobileOpen])
+
+  useEffect(() => () => {
+    if (openTimer.current) clearTimeout(openTimer.current)
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+  }, [])
+
+  function hoverOpen(key: string) {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+    openTimer.current = setTimeout(() => setOpenMenu(key), 120)
+  }
+  function hoverClose() {
+    if (openTimer.current) clearTimeout(openTimer.current)
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 180)
+  }
+
+  const navItems = [...settings.nav_items].filter(n => n.visible).sort((a, b) => a.order - b.order)
+  const phone = settings.header_phone_number
+  const phoneTel = phone.replace(/[^0-9+]/g, '')
+  const waNumber = settings.whatsapp_number.replace(/[^0-9]/g, '')
+
+  const positionClass = settings.header_sticky ? 'fixed top-0 left-0 right-0' : 'relative'
+  const isActive = (link: string) => link !== '/' ? pathname.startsWith(link) : pathname === '/'
+
+  // DB-backed auto dropdowns for the canonical Services/Brands links.
+  function dbKey(link: string): 'services' | 'brands' | null {
+    if (link === '/services' && services.length > 0) return 'services'
+    if (link === '/brands' && brands.length > 0) return 'brands'
+    return null
+  }
+  // A nav item shows a dropdown if it has custom children OR is a DB dropdown.
+  function children(item: NavItem) { return item.children?.filter(c => c.label && c.link) ?? [] }
+  function hasDropdown(item: NavItem) { return children(item).length > 0 || dbKey(item.link) !== null }
+
   return (
-    <header className={['fixed top-0 left-0 right-0 z-40 bg-white transition-shadow duration-150', scrolled ? 'shadow-md' : 'shadow-sm'].join(' ')}>
+    <header
+      className={[positionClass, 'z-50 transition-all duration-200 border-b', scrolled ? 'shadow-[0_8px_24px_-16px_rgba(16,24,40,0.35)] border-hairline' : 'border-transparent shadow-sm'].join(' ')}
+      style={{ backgroundColor: scrolled ? 'rgba(255,255,255,0.85)' : settings.header_background_color, backdropFilter: scrolled ? 'saturate(180%) blur(10px)' : undefined }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="CarWorkshop.ae home">
-            <span className="text-2xl font-extrabold text-[#4472C4] tracking-tight">
-              Car<span className="text-[#E8601C]">Workshop</span><span className="text-[#1F2937]">.ae</span>
-            </span>
+          <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={`${settings.site_name} home`}>
+            {settings.header_logo_url ? (
+              <Image src={settings.header_logo_url} alt={`${settings.site_name} logo`} width={150} height={40} className="h-9 w-auto object-contain" />
+            ) : (
+              <span className="text-2xl font-extrabold tracking-tight">
+                <span className="text-[#4472C4]">Car</span><span className="text-[#E8601C]">Workshop</span><span style={{ color: settings.header_text_color }}>.ae</span>
+              </span>
+            )}
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
-            {NAV_LINKS.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={[
-                  'text-sm font-medium transition-colors',
-                  pathname.startsWith(link.href)
-                    ? 'text-[#4472C4] border-b-2 border-[#4472C4] pb-0.5'
-                    : 'text-[#374151] hover:text-[#4472C4]',
-                ].join(' ')}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
+            {navItems.map(item => {
+              const active = isActive(item.link)
+              const baseCls = ['inline-flex items-center gap-1 px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors', active ? 'text-[#274E96] bg-[#EEF3FB]' : 'hover:text-[#274E96] hover:bg-[#F5F8FD]'].join(' ')
+              if (!hasDropdown(item)) {
+                return (
+                  <Link key={item.id} href={item.link} className={baseCls} style={active ? undefined : { color: settings.header_text_color }}>
+                    {item.label}
+                  </Link>
+                )
+              }
+              const key = item.id
+              const kids = children(item)
+              const db = dbKey(item.link)
+              return (
+                <div key={item.id} className="relative" onMouseEnter={() => hoverOpen(key)} onMouseLeave={hoverClose}>
+                  <Link href={item.link} className={baseCls} style={active ? undefined : { color: settings.header_text_color }} aria-expanded={openMenu === key} aria-haspopup="true">
+                    {item.label}
+                    <ChevronDown size={15} className={['transition-transform', openMenu === key ? 'rotate-180' : ''].join(' ')} />
+                  </Link>
+
+                  {openMenu === key && (
+                    <div className="absolute left-0 top-full pt-2 z-50">
+                      {kids.length > 0 ? (
+                        <div className="w-64 bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-2">
+                          {kids.map((c, i) => (
+                            <Link key={i} href={c.link} className="block px-3 py-2.5 rounded-xl text-sm font-medium text-[#1F2937] hover:bg-[#EEF3FB] hover:text-[#274E96] transition-colors">{c.label}</Link>
+                          ))}
+                        </div>
+                      ) : db === 'services' ? (
+                        <div className="w-72 bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-2">
+                          {services.map(s => (
+                            <Link key={s.slug} href={`/services/${s.slug}`} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EEF3FB] transition-colors">
+                              <span className="text-sm font-medium text-[#1F2937]">{s.name}</span>
+                              {s.starting_price != null && <span className="text-xs font-bold text-[#E8601C] whitespace-nowrap">From AED {s.starting_price}</span>}
+                            </Link>
+                          ))}
+                          <Link href="/services" className="block px-3 py-2 mt-1 text-xs font-bold text-[#4472C4] hover:underline border-t border-hairline">View all services →</Link>
+                        </div>
+                      ) : (
+                        <div className="w-[26rem] bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-3 grid grid-cols-2 gap-1">
+                          {brands.map(b => (
+                            <Link key={b.slug} href={`/brands/${b.slug}`} className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[#EEF3FB] transition-colors">
+                              {b.logo_url ? (
+                                <Image src={b.logo_url} alt={`${b.name} logo`} width={28} height={28} className="h-6 w-6 object-contain" />
+                              ) : (
+                                <span className="h-6 w-6 rounded-lg bg-[#EEF3FB] flex items-center justify-center text-[10px] font-bold text-[#4472C4]">{b.name.slice(0, 2).toUpperCase()}</span>
+                              )}
+                              <span className="text-sm font-medium text-[#1F2937] truncate">{b.name}</span>
+                            </Link>
+                          ))}
+                          <Link href="/brands" className="col-span-2 px-2.5 py-2 mt-1 text-xs font-bold text-[#4472C4] hover:underline border-t border-hairline">View all brands →</Link>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </nav>
 
-          {/* CTA + Phone */}
-          <div className="hidden md:flex items-center gap-3">
-            <a
-              href="tel:+971501234567"
-              className="text-sm font-semibold text-[#1F2937] hover:text-[#4472C4] transition-colors"
-              aria-label="Call us"
-            >
-              <span className="text-[#4472C4]">📞</span> +971 50 123 4567
-            </a>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm bg-[#E8601C] text-white font-semibold hover:bg-[#D15518] transition-colors"
-            >
-              Book Now
-            </Link>
+          <div className="hidden md:flex items-center gap-2.5">
+            {settings.header_phone_visible && (
+              <a href={`tel:${phoneTel}`} className="inline-flex items-center gap-1.5 text-sm font-semibold hover:text-[#274E96] transition-colors" style={{ color: settings.header_text_color }} aria-label="Call us">
+                <Phone size={16} className="text-[#4472C4]" /> {phone}
+              </a>
+            )}
+            {settings.header_whatsapp_visible && (
+              <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm ring-1 ring-[#25D366] text-[#128C7E] font-semibold hover:bg-[#25D366]/10 transition-colors" aria-label="WhatsApp us">
+                <MessageCircle size={16} /> WhatsApp
+              </a>
+            )}
+            {settings.header_cta_visible && (
+              <Link href={settings.header_cta_link} className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm bg-gradient-orange text-white font-bold shadow-[0_8px_20px_-8px_rgba(232,96,28,0.6)] hover:-translate-y-0.5 transition-all">
+                {settings.header_cta_text}
+              </Link>
+            )}
           </div>
 
-          {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 rounded-md text-[#374151] hover:text-[#4472C4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4472C4]"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen(v => !v)}
+            className="md:hidden p-2 rounded-lg hover:bg-[#F5F8FD] hover:text-[#274E96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4472C4]"
+            style={{ color: settings.header_text_color }}
+            aria-label="Open menu" aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen(true)}
           >
-            {mobileOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
+            <Menu size={24} />
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile drawer */}
       {mobileOpen && (
-        <nav className="md:hidden bg-white border-t border-[#E5E7EB] px-4 py-3 flex flex-col gap-1" aria-label="Mobile navigation">
-          {NAV_LINKS.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={[
-                'py-2.5 px-3 rounded-md text-sm font-medium transition-colors',
-                pathname.startsWith(link.href)
-                  ? 'bg-[#EEF3FB] text-[#4472C4]'
-                  : 'text-[#374151] hover:bg-[#F9FAFB]',
-              ].join(' ')}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <a
-            href="tel:+971501234567"
-            className="py-2.5 px-3 text-sm font-semibold text-[#4472C4]"
-          >
-            📞 +971 50 123 4567
-          </a>
-          <Link
-            href="/contact"
-            className="mt-1 py-2.5 px-3 rounded-md bg-[#E8601C] text-white text-sm font-semibold text-center"
-          >
-            Book Now
-          </Link>
-        </nav>
+        <div className="md:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+          <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-elevated flex flex-col" role="dialog" aria-modal="true" aria-label="Navigation menu">
+            <div className="flex items-center justify-between h-16 px-4 border-b border-hairline shrink-0">
+              <span className="text-lg font-extrabold"><span className="text-[#4472C4]">Car</span><span className="text-[#E8601C]">Workshop</span><span className="text-[#1F2937]">.ae</span></span>
+              <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg text-[#374151] hover:bg-[#F5F8FD]" aria-label="Close menu">
+                <X size={24} />
+              </button>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Mobile navigation">
+              {navItems.map(item => {
+                const active = isActive(item.link)
+                if (!hasDropdown(item)) {
+                  return (
+                    <Link key={item.id} href={item.link} className={['flex items-center min-h-[48px] px-3 rounded-xl text-base font-medium transition-colors', active ? 'bg-[#EEF3FB] text-[#274E96] font-semibold' : 'text-[#374151] hover:bg-[#F5F8FD]'].join(' ')}>
+                      {item.label}
+                    </Link>
+                  )
+                }
+                const key = item.id
+                const expanded = mobileExpanded === key
+                const kids = children(item)
+                const db = dbKey(item.link)
+                return (
+                  <div key={item.id}>
+                    <button onClick={() => setMobileExpanded(expanded ? null : key)} className={['w-full flex items-center justify-between min-h-[48px] px-3 rounded-xl text-base font-medium transition-colors', active ? 'text-[#274E96] font-semibold' : 'text-[#374151] hover:bg-[#F5F8FD]'].join(' ')} aria-expanded={expanded}>
+                      {item.label}
+                      <ChevronDown size={18} className={['transition-transform', expanded ? 'rotate-180' : ''].join(' ')} />
+                    </button>
+                    {expanded && (
+                      <div className="pl-3 pb-1">
+                        {kids.length > 0
+                          ? kids.map((c, i) => <Link key={i} href={c.link} className="flex items-center min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">{c.label}</Link>)
+                          : db === 'services'
+                            ? services.map(s => (
+                                <Link key={s.slug} href={`/services/${s.slug}`} className="flex items-center justify-between min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">
+                                  <span>{s.name}</span>
+                                  {s.starting_price != null && <span className="text-xs font-bold text-[#E8601C]">From AED {s.starting_price}</span>}
+                                </Link>
+                              ))
+                            : brands.map(b => <Link key={b.slug} href={`/brands/${b.slug}`} className="flex items-center min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">{b.name}</Link>)}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </nav>
+
+            <div className="shrink-0 border-t border-hairline p-3 flex flex-col gap-2">
+              {settings.header_whatsapp_visible && (
+                <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 min-h-[48px] rounded-xl bg-[#25D366] text-white font-semibold">
+                  <MessageCircle size={18} /> WhatsApp
+                </a>
+              )}
+              {settings.header_phone_visible && (
+                <a href={`tel:${phoneTel}`} className="flex items-center justify-center gap-2 min-h-[48px] rounded-xl ring-1 ring-[#4472C4] text-[#4472C4] font-semibold">
+                  <Phone size={18} /> Call {phone}
+                </a>
+              )}
+              {settings.header_cta_visible && (
+                <Link href={settings.header_cta_link} className="flex items-center justify-center min-h-[48px] rounded-xl bg-gradient-orange text-white font-bold">
+                  {settings.header_cta_text}
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </header>
   )

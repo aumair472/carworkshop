@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { UpdateLocationSchema } from '@/lib/schemas/location'
 import { logAudit } from '@/lib/audit'
+import { revalidatePage } from '@/lib/revalidate'
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -44,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     await logAudit({ userId: user.id, action: 'update', table: 'locations', recordId: id })
+    await revalidatePage('location', data.slug)
     return NextResponse.json({ location: data })
   } catch (err) {
     console.error('PATCH /api/admin/locations/[id]:', err)

@@ -8,12 +8,20 @@ import type { InsertFormSubmission } from '@/types'
 
 function checkOrigin(req: NextRequest): boolean {
   const origin = req.headers.get('origin')
-  const allowed = [
+  if (!origin) return false
+  // Trust the configured site origin (so it works on any production domain /
+  // Vercel deployment) plus the canonical domain and localhost in dev.
+  const siteOrigin = (() => {
+    try { return process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL).origin : null }
+    catch { return null }
+  })()
+  const allowed = new Set([
     'https://carworkshop.ae',
     'https://www.carworkshop.ae',
+    ...(siteOrigin ? [siteOrigin] : []),
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : []),
-  ]
-  return !!origin && allowed.includes(origin)
+  ])
+  return allowed.has(origin)
 }
 
 export async function POST(req: NextRequest) {

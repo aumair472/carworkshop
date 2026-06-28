@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createPublicSupabase } from '@/lib/supabase/public'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sanitizeHTML } from '@/lib/sanitize'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { CTABanner } from '@/components/sections/CTABanner'
+import { getSettings } from '@/lib/hooks/useSettings'
+import { resolveSEO, seoToMetadata } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -13,19 +15,20 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createServerSupabase()
-  const { data: post } = await supabase.from('blog_posts').select('title, excerpt, seo_title, seo_description, featured_image').eq('slug', slug).eq('status', 'published').single()
+  const supabase = await createPublicSupabase()
+  const { data: post } = await supabase.from('blog_posts').select('title, excerpt, seo_title, seo_description, featured_image, seo_json').eq('slug', slug).eq('status', 'published').single()
 
   if (!post) return { title: 'Post Not Found' }
 
-  const title = post.seo_title ?? post.title
-  const description = post.seo_description ?? post.excerpt ?? ''
-  return {
-    title,
-    description,
-    alternates: { canonical: `https://carworkshop.ae/blog/${slug}` },
-    openGraph: { title, description, type: 'article', url: `https://carworkshop.ae/blog/${slug}`, images: post.featured_image ? [post.featured_image] : [] },
-  }
+  const url = `https://carworkshop.ae/blog/${slug}`
+  const seo = resolveSEO(post.seo_json, {
+    title: post.seo_title ?? `${post.title} | CarWorkshop.ae`,
+    description: post.seo_description ?? post.excerpt ?? '',
+    url,
+    ogImage: post.featured_image,
+  })
+  const meta = seoToMetadata(seo, url)
+  return { ...meta, openGraph: { ...meta.openGraph, type: 'article' } }
 }
 
 export const revalidate = 3600
@@ -39,10 +42,19 @@ export async function generateStaticParams() {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createServerSupabase()
-  const { data: post } = await supabase.from('blog_posts').select('*').eq('slug', slug).eq('status', 'published').single()
+  const supabase = await createPublicSupabase()
+  const [{ data: post }, settings] = await Promise.all([
+    supabase.from('blog_posts').select('*').eq('slug', slug).eq('status', 'published').single(),
+    getSettings(),
+  ])
 
   if (!post) notFound()
+
+  let authorName = settings.default_author_name || 'CarWorkshop Team'
+  if (post.author_id) {
+    const { data: author } = await supabase.from('users').select('full_name').eq('id', post.author_id).maybeSingle()
+    if (author?.full_name) authorName = author.full_name
+  }
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -62,7 +74,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
 
-      <div className="bg-[#F0F4FF] py-10 border-b border-[#C7D9F5]">
+      <div className="bg-mesh py-8 border-b border-hairline">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: post.title }]} />
         </div>
@@ -74,7 +86,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             {post.title}
           </h1>
           <div className="flex items-center gap-3 text-sm text-[#9CA3AF]">
-            <span>CarWorkshop Team</span>
+            <span>{authorName}</span>
             {post.published_at && (
               <>
                 <span>·</span>
@@ -93,13 +105,18 @@ export default async function BlogPostPage({ params }: PageProps) {
         )}
 
         {post.content ? (
-          <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHTML(post.content) }} />
+          <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(post.content) }} />
         ) : (
           <p className="text-[#6B7280]">{post.excerpt}</p>
         )}
       </article>
 
-      <CTABanner />
+      <CTABanner
+        title={settings.blog_cta_headline || 'Book Your Car Service Today'}
+        subtitle={settings.blog_cta_subheadline || 'Free pickup & delivery across UAE'}
+        ctaLabel={settings.blog_cta_button_text || 'Book Now'}
+        ctaHref={settings.blog_cta_button_link || '/contact'}
+      />
     </>
   )
 }

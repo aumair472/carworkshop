@@ -15,8 +15,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-[#E8601C] text-white font-semibold hover:bg-[#D15518] focus-visible:ring-[#E8601C]',
-  secondary: 'border-2 border-[#4472C4] text-[#4472C4] bg-white font-semibold hover:bg-[#EEF3FB] focus-visible:ring-[#4472C4]',
+  primary: 'bg-gradient-orange text-white font-bold shadow-[0_8px_24px_-8px_rgba(232,96,28,0.55)] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(232,96,28,0.7)] focus-visible:ring-[#E8601C]',
+  secondary: 'bg-white text-[#274E96] font-semibold ring-1 ring-[#C7D9F5] hover:ring-[#4472C4] hover:bg-[#F7FAFF] focus-visible:ring-[#4472C4]',
   ghost: 'text-[#4472C4] font-medium hover:underline underline-offset-2 focus-visible:ring-[#4472C4]',
   danger: 'bg-[#DC2626] text-white font-semibold hover:bg-[#B91C1C] focus-visible:ring-[#DC2626]',
 }
@@ -46,7 +46,7 @@ export function Button({
       {...props}
       disabled={isDisabled}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-md transition-colors duration-150',
+        'inline-flex items-center justify-center gap-2 rounded-xl transition-all duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variants[variant],

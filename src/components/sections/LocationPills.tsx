@@ -17,6 +17,9 @@ export function LocationPills({ locations, brandSlug, modelSlug, serviceSlug, cu
     if (brandSlug && modelSlug && serviceSlug) {
       return `/brands/${brandSlug}/${modelSlug}/${serviceSlug}/${location.slug}`
     }
+    if (brandSlug && serviceSlug) {
+      return `/brands/${brandSlug}/${serviceSlug}/${location.slug}`
+    }
     if (serviceSlug) {
       return `/services/${serviceSlug}/${location.slug}`
     }
@@ -24,15 +27,15 @@ export function LocationPills({ locations, brandSlug, modelSlug, serviceSlug, cu
   }
 
   return (
-    <section className="py-8 border-t border-[#E5E7EB]" aria-label="Service locations">
+    <section className="py-10 border-t border-hairline" aria-label="Service locations">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-sm font-semibold text-[#374151] mb-3">Also Available In:</p>
+        <p className="text-sm font-semibold text-[#334155] mb-3">Also Available In:</p>
         <div className="flex flex-wrap gap-2">
           {filtered.map(location => (
             <Link
               key={location.id}
               href={getHref(location)}
-              className="px-3 py-1.5 rounded-full border border-[#E5E7EB] text-xs font-medium text-[#6B7280] hover:border-[#4472C4] hover:text-[#4472C4] transition-colors"
+              className="px-3.5 py-1.5 rounded-full bg-white border border-hairline text-xs font-medium text-[#475569] hover:border-[#4472C4] hover:text-[#274E96] shadow-[var(--shadow-card)] transition-all"
             >
               {location.name}
             </Link>

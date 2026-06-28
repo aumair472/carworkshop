@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PageContentJsonSchema } from './page-content'
 
 const FAQItemSchema = z.object({
   question: z.string().min(1).max(500),
@@ -21,6 +22,7 @@ export const CreateServiceSchema = z.object({
   schema_type: z.string().default('Service'),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
   sort_order: z.number().int().min(0).default(0),
+  content_json: PageContentJsonSchema.optional(),
 })
 
 export const UpdateServiceSchema = CreateServiceSchema.partial()
