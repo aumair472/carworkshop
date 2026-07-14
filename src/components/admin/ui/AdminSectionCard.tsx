@@ -9,14 +9,34 @@ interface AdminSectionCardProps {
   visible?: boolean
   onVisibleChange?: (v: boolean) => void
   defaultOpen?: boolean
+  /** SMC-style colored header bar (e.g. '#22C55E'). White bold uppercase title, − collapse button. */
+  headerColor?: string
   children: React.ReactNode
 }
 
 // Collapsible section card with an optional visible/hidden eye toggle.
 // Used by the static page editors (home/about/contact/faq).
-export function AdminSectionCard({ title, description, visible, onVisibleChange, defaultOpen = true, children }: AdminSectionCardProps) {
+export function AdminSectionCard({ title, description, visible, onVisibleChange, defaultOpen = true, headerColor, children }: AdminSectionCardProps) {
   const [open, setOpen] = useState(defaultOpen)
   const hidden = visible === false
+
+  if (headerColor) {
+    return (
+      <section className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+        <header
+          className="flex items-center justify-between gap-3 px-4 py-2.5 cursor-pointer select-none"
+          style={{ backgroundColor: headerColor }}
+          onClick={() => setOpen(o => !o)}
+        >
+          <span className="text-sm font-bold uppercase tracking-wide text-white truncate">{title}</span>
+          <button type="button" aria-label={open ? 'Collapse' : 'Expand'} className="text-white text-lg font-bold leading-none px-1">
+            {open ? '−' : '+'}
+          </button>
+        </header>
+        {open && <div className="px-5 py-5 space-y-4">{children}</div>}
+      </section>
+    )
+  }
 
   return (
     <section className={`bg-white rounded-xl border shadow-sm transition-colors ${hidden ? 'border-zinc-200 opacity-75' : 'border-zinc-200'}`}>

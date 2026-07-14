@@ -1,85 +1,49 @@
 'use client'
 
-import { Suspense, useSyncExternalStore } from 'react'
+import { Suspense, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Car, Wrench, MapPin, FileText, Files, Home, Info, Phone,
-  HelpCircle, Lock, Zap, Users, Image as ImageIcon, Settings, UserCog,
-  Globe, LogOut, ChevronsLeft, Search, type LucideIcon,
+  LayoutDashboard, HelpCircle, Languages, Files, FileText, Wrench,
+  FileSearch, Search, Settings, UserCog, Users, Car, MapPin, Zap,
+  Image as ImageIcon, Activity, LogOut, ChevronDown, type LucideIcon,
 } from 'lucide-react'
+import { subscribeCollapsed, getCollapsed } from './sidebar-store'
 import type { UserRole } from '@/types'
 
 interface NavItem { label: string; href: string; icon: LucideIcon }
-interface NavSection { label: string; items: NavItem[] }
 
 // Hrefs that the restricted seo_editor role may NOT see.
 const SEO_EDITOR_HIDDEN = ['/admin/pages/generate', '/admin/media', '/admin/settings', '/admin/users']
 
-const NAV_SECTIONS: NavSection[] = [
-  { label: 'Overview', items: [{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }] },
-  {
-    label: 'Content',
-    items: [
-      { label: 'Brands', href: '/admin/brands', icon: Car },
-      { label: 'Services', href: '/admin/services', icon: Wrench },
-      { label: 'Locations', href: '/admin/locations', icon: MapPin },
-      { label: 'Blog Posts', href: '/admin/blog', icon: FileText },
-    ],
-  },
-  {
-    label: 'Pages',
-    items: [
-      { label: 'All Pages', href: '/admin/pages', icon: Files },
-      { label: 'SEO Health', href: '/admin/seo', icon: Search },
-      { label: 'Model Pages', href: '/admin/pages/models', icon: Car },
-      { label: 'Home', href: '/admin/pages/static/home', icon: Home },
-      { label: 'About', href: '/admin/pages/static/about', icon: Info },
-      { label: 'Contact', href: '/admin/pages/static/contact', icon: Phone },
-      { label: 'FAQ', href: '/admin/pages/static/faq', icon: HelpCircle },
-      { label: 'Privacy & Terms', href: '/admin/pages/static/privacy', icon: Lock },
-      { label: 'Services List Page', href: '/admin/pages/static/services-listing', icon: Wrench },
-      { label: 'Brands List Page', href: '/admin/pages/static/brands-listing', icon: Car },
-      { label: 'Locations List Page', href: '/admin/pages/static/locations-listing', icon: MapPin },
-      { label: 'Blog List Page', href: '/admin/pages/static/blog-listing', icon: FileText },
-    ],
-  },
-  {
-    label: 'Operations',
-    items: [
-      { label: 'Generate Pages', href: '/admin/pages/generate', icon: Zap },
-      { label: 'Leads', href: '/admin/leads', icon: Users },
-      { label: 'Media', href: '/admin/media', icon: ImageIcon },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
-      { label: 'Settings', href: '/admin/settings', icon: Settings },
-      { label: 'Users', href: '/admin/users', icon: UserCog },
-    ],
-  },
+// Main nav — ServiceMyCar order.
+const MAIN_NAV: NavItem[] = [
+  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: "FAQ's", href: '/admin/faqs', icon: HelpCircle },
+  { label: 'Language Key', href: '/admin/language-key', icon: Languages },
+  { label: 'SEO Pages', href: '/admin/seo-pages', icon: Files },
+  { label: 'SEO Blog', href: '/admin/seo-blog', icon: FileText },
+  { label: 'Service Content', href: '/admin/service-content', icon: Wrench },
+  { label: 'Static Page SEO', href: '/admin/static-page-seo', icon: FileSearch },
+  { label: 'Search Content', href: '/admin/search-content', icon: Search },
+  { label: 'Settings', href: '/admin/settings', icon: Settings },
+  { label: 'Users', href: '/admin/users', icon: UserCog },
+  { label: 'Leads', href: '/admin/leads', icon: Users },
 ]
 
-const STORAGE_KEY = 'admin_sidebar_collapsed'
-
-const collapseListeners = new Set<() => void>()
-function subscribeCollapsed(cb: () => void) {
-  collapseListeners.add(cb)
-  window.addEventListener('storage', cb)
-  return () => { collapseListeners.delete(cb); window.removeEventListener('storage', cb) }
-}
-function getCollapsed() {
-  return typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY) === '1'
-}
-function setCollapsedValue(value: boolean) {
-  localStorage.setItem(STORAGE_KEY, value ? '1' : '0')
-  collapseListeners.forEach(l => l())
-}
+// Secondary group — backs the generate wizard / catalog data.
+const CATALOG_NAV: NavItem[] = [
+  { label: 'Brands', href: '/admin/brands', icon: Car },
+  { label: 'Services', href: '/admin/services', icon: Wrench },
+  { label: 'Locations', href: '/admin/locations', icon: MapPin },
+  { label: 'Generate Pages', href: '/admin/pages/generate', icon: Zap },
+  { label: 'Media', href: '/admin/media', icon: ImageIcon },
+  { label: 'SEO Health', href: '/admin/seo', icon: Activity },
+]
 
 export function AdminSidebar({ role }: { role?: UserRole }) {
   return (
-    <Suspense fallback={<aside className="w-60 shrink-0" style={{ backgroundColor: '#0F1117' }} />}>
+    <Suspense fallback={<aside className="w-[220px] shrink-0" style={{ backgroundColor: '#1F2937' }} />}>
       <SidebarInner role={role} />
     </Suspense>
   )
@@ -87,95 +51,137 @@ export function AdminSidebar({ role }: { role?: UserRole }) {
 
 function SidebarInner({ role }: { role?: UserRole }) {
   const pathname = usePathname()
-  const tab = useSearchParams().get('tab')
   const collapsed = useSyncExternalStore(subscribeCollapsed, getCollapsed, () => false)
+  const [query, setQuery] = useState('')
+  const [catalogOpen, setCatalogOpen] = useState(false)
 
-  const sections = role === 'seo_editor'
-    ? NAV_SECTIONS.map(s => ({ ...s, items: s.items.filter(i => !SEO_EDITOR_HIDDEN.includes(i.href)) })).filter(s => s.items.length > 0)
-    : NAV_SECTIONS
+  const filterRole = (items: NavItem[]) =>
+    role === 'seo_editor' ? items.filter(i => !SEO_EDITOR_HIDDEN.includes(i.href)) : items
+
+  const q = query.trim().toLowerCase()
+  const filterQuery = (items: NavItem[]) =>
+    q ? items.filter(i => i.label.toLowerCase().includes(q)) : items
+
+  const mainItems = filterQuery(filterRole(MAIN_NAV))
+  const catalogItems = filterQuery(filterRole(CATALOG_NAV))
+
+  function isActive(href: string) {
+    if (href === '/admin') return pathname === '/admin'
+    // Avoid /admin/seo matching /admin/seo-pages etc.
+    return pathname === href || pathname.startsWith(href + '/')
+  }
 
   return (
     <aside
-      className={['shrink-0 text-zinc-400 flex flex-col h-screen sticky top-0 transition-[width] duration-200 border-r', collapsed ? 'w-16' : 'w-60'].join(' ')}
-      style={{ backgroundColor: '#0F1117', borderColor: '#27272A' }}
+      className={['shrink-0 flex flex-col h-screen sticky top-0 transition-[width] duration-200', collapsed ? 'w-16' : 'w-[220px]'].join(' ')}
+      style={{ backgroundColor: '#1F2937' }}
     >
-      {/* Brand + collapse toggle */}
-      <div className="flex items-center gap-2 px-3 h-14 border-b" style={{ borderColor: '#27272A' }}>
-        {!collapsed && (
-          <Link href="/admin" className="flex-1 min-w-0 leading-tight">
-            <span className="text-base font-extrabold block truncate text-white">
-              <span className="text-[#4472C4]">Car</span><span className="text-[#E8601C]">Workshop</span><span className="text-zinc-300">.ae</span>
+      {/* Logo + tagline */}
+      <Link href="/admin" className="block px-3 py-3 border-b" style={{ borderColor: '#374151' }}>
+        {collapsed ? (
+          <span className="block text-center text-lg font-extrabold text-white">C</span>
+        ) : (
+          <>
+            <span className="text-lg font-extrabold block leading-tight whitespace-nowrap">
+              <span className="text-[#4472C4]">CAR</span><span className="text-[#E8601C]">WORKSHOP</span><span className="text-white">.AE</span>
             </span>
-            <span className="text-[10px] text-zinc-500">Admin Panel</span>
-          </Link>
+            <span className="text-[9px] tracking-wide text-zinc-400 font-semibold">
+              WE COLLECT&nbsp;&nbsp;|&nbsp;&nbsp;WE SERVICE&nbsp;&nbsp;|&nbsp;&nbsp;WE DELIVER
+            </span>
+          </>
         )}
-        <button
-          type="button"
-          onClick={() => setCollapsedValue(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand' : 'Collapse'}
-          className={['flex items-center justify-center h-8 w-8 rounded-md text-zinc-400 hover:bg-[#1A1A2E] hover:text-white transition-colors', collapsed ? 'mx-auto' : ''].join(' ')}
-        >
-          <ChevronsLeft size={18} className={collapsed ? 'rotate-180 transition-transform' : 'transition-transform'} />
-        </button>
-      </div>
+      </Link>
 
-      <nav className="flex-1 overflow-y-auto py-2 px-2 admin-scroll" aria-label="Admin navigation">
-        {sections.map(section => (
-          <div key={section.label} className="mb-1">
-            {collapsed
-              ? <div className="my-2 mx-2 border-t" style={{ borderColor: '#27272A' }} />
-              : <p className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#52525B' }}>{section.label}</p>}
-            {section.items.map(item => {
+      {/* Search */}
+      {!collapsed && (
+        <div className="px-3 py-3">
+          <div className="relative">
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="search"
+              className="w-full rounded-full bg-white text-sm text-[#1F2937] placeholder:text-[#9CA3AF] pl-4 pr-9 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#4472C4]"
+            />
+            <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+          </div>
+        </div>
+      )}
+
+      <nav className="flex-1 overflow-y-auto admin-scroll" aria-label="Admin navigation">
+        {mainItems.map(item => {
+          const Icon = item.icon
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={collapsed ? item.label : undefined}
+              className={[
+                'flex items-center text-sm font-medium transition-colors',
+                collapsed ? 'justify-center h-10' : 'gap-3 px-4 py-2.5',
+                active ? 'text-white' : 'text-zinc-300 hover:text-white hover:bg-[#374151]',
+              ].join(' ')}
+              style={active ? { backgroundColor: '#4472C4' } : undefined}
+            >
+              <Icon size={16} className="shrink-0" />
+              {!collapsed && <span className="truncate uppercase text-[13px] tracking-wide">{item.label}</span>}
+            </Link>
+          )
+        })}
+
+        {catalogItems.length > 0 && (
+          <div className="mt-2 border-t pt-1" style={{ borderColor: '#374151' }}>
+            {!collapsed && (
+              <button
+                type="button"
+                onClick={() => setCatalogOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-300"
+              >
+                Catalog &amp; Tools
+                <ChevronDown size={14} className={catalogOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+              </button>
+            )}
+            {(catalogOpen || collapsed || q.length > 0) && catalogItems.map(item => {
               const Icon = item.icon
-              const isActive = item.href === '/admin'
-                ? pathname === '/admin'
-                : item.href === '/admin/settings'
-                  ? pathname === '/admin/settings' && !tab
-                  : pathname.startsWith(item.href) && pathname !== '/admin/settings'
+              const active = isActive(item.href)
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   title={collapsed ? item.label : undefined}
                   className={[
-                    'relative flex items-center rounded-md text-sm font-medium transition-colors',
-                    collapsed ? 'justify-center h-9 w-9 mx-auto' : 'gap-2.5 px-3 py-2',
-                    isActive ? 'text-white' : 'text-zinc-400 hover:text-white hover:bg-[#1A1A2E]',
+                    'flex items-center text-sm font-medium transition-colors',
+                    collapsed ? 'justify-center h-10' : 'gap-3 px-4 py-2',
+                    active ? 'text-white' : 'text-zinc-400 hover:text-white hover:bg-[#374151]',
                   ].join(' ')}
-                  style={isActive ? { backgroundColor: '#1E1E2E' } : undefined}
+                  style={active ? { backgroundColor: '#4472C4' } : undefined}
                 >
-                  {isActive && !collapsed && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-[#4472C4]" />}
-                  <Icon size={16} className="shrink-0" />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  <Icon size={15} className="shrink-0" />
+                  {!collapsed && <span className="truncate text-[13px]">{item.label}</span>}
                 </Link>
               )
             })}
           </div>
-        ))}
+        )}
       </nav>
 
-      {/* User footer */}
-      <div className="border-t p-2" style={{ borderColor: '#27272A' }}>
-        {!collapsed && (
-          <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-            <span className="h-8 w-8 shrink-0 rounded-full bg-[#4472C4] text-white flex items-center justify-center text-sm font-bold">A</span>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-white leading-tight truncate">Admin</p>
-              <p className="text-[11px] text-zinc-500 truncate">CarWorkshop.ae</p>
-            </div>
-          </div>
-        )}
-        <div className={collapsed ? 'space-y-1' : 'flex gap-1'}>
-          <Link href="/" title="View Site" className={['flex items-center justify-center rounded-md text-sm text-zinc-400 hover:text-white hover:bg-[#1A1A2E] transition-colors', collapsed ? 'h-9 w-9 mx-auto' : 'flex-1 gap-2 py-2'].join(' ')}>
-            <Globe size={16} />{!collapsed && <span className="text-xs">View Site</span>}
-          </Link>
-          <form action="/api/admin/logout" method="POST" className={collapsed ? '' : 'flex-1'}>
-            <button type="submit" title="Sign Out" className={['flex items-center justify-center rounded-md text-sm text-zinc-400 hover:text-white hover:bg-[#1A1A2E] transition-colors w-full', collapsed ? 'h-9 w-9 mx-auto' : 'gap-2 py-2'].join(' ')}>
-              <LogOut size={16} />{!collapsed && <span className="text-xs">Sign Out</span>}
-            </button>
-          </form>
-        </div>
+      {/* Logout */}
+      <div className="p-2 border-t" style={{ borderColor: '#374151' }}>
+        <form action="/api/admin/logout" method="POST">
+          <button
+            type="submit"
+            title="Logout"
+            className={[
+              'flex items-center justify-center gap-2 w-full rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90',
+              collapsed ? 'h-9' : 'py-2.5',
+            ].join(' ')}
+            style={{ backgroundColor: '#EF4444' }}
+          >
+            <LogOut size={16} />
+            {!collapsed && <span>Logout</span>}
+          </button>
+        </form>
       </div>
     </aside>
   )

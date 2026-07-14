@@ -14,6 +14,9 @@ export type WebsiteSetting = Database['public']['Tables']['website_settings']['R
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row']
 export type User = Database['public']['Tables']['users']['Row']
 export type PageTemplate = Database['public']['Tables']['page_templates']['Row']
+export type Faq = Database['public']['Tables']['faqs']['Row']
+export type LanguageKey = Database['public']['Tables']['language_keys']['Row']
+export type SearchContent = Database['public']['Tables']['search_content']['Row']
 export type BrandServiceMap = Database['public']['Tables']['brand_service_map']['Row']
 export type BrandLocationMap = Database['public']['Tables']['brand_location_map']['Row']
 
@@ -37,6 +40,14 @@ export type ContentStatus = 'draft' | 'published' | 'archived'
 export type LeadStatus = 'new' | 'contacted' | 'in_progress' | 'converted' | 'closed'
 export type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff' | 'seo_editor'
 export type PageType = 'brand' | 'brand_service' | 'brand_location' | 'model' | 'model_service' | 'model_location' | 'model_service_location' | 'service' | 'location'
+export type ApprovalStatus = 'pending' | 'approved' | 'resubmission_required' | 'rejected'
+
+export const APPROVAL_STATUS_LABELS: Record<ApprovalStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  resubmission_required: 'Resubmission Required',
+  rejected: 'Rejected',
+}
 
 export interface FAQItem {
   question: string

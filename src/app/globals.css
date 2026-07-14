@@ -232,3 +232,12 @@ html { scrollbar-width: thin; scrollbar-color: #4472C4 #EEF1F5; }
   content: attr(data-placeholder);
   float: left; color: #A1A1AA; pointer-events: none; height: 0;
 }
+.admin-rte .ProseMirror table {
+  border-collapse: collapse; width: 100%; margin: 0.5rem 0; table-layout: fixed;
+}
+.admin-rte .ProseMirror th, .admin-rte .ProseMirror td {
+  border: 1px solid #D1D5DB; padding: 0.35rem 0.5rem; vertical-align: top;
+}
+.admin-rte .ProseMirror th { background: #F3F4F6; font-weight: 600; }
+.admin-rte .ProseMirror .selectedCell { background: #EEF3FB; }
+.admin-rte .ProseMirror[dir='rtl'] { direction: rtl; text-align: right; }

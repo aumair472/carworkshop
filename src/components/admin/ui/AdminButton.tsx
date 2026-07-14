@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-type Variant = 'primary' | 'orange' | 'outline' | 'danger' | 'ghost'
+type Variant = 'primary' | 'orange' | 'outline' | 'danger' | 'ghost' | 'success'
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-[#4472C4] text-white hover:bg-[#3560B0]',
@@ -8,6 +8,7 @@ const VARIANTS: Record<Variant, string> = {
   outline: 'border border-zinc-300 text-zinc-700 bg-white hover:bg-zinc-50',
   danger: 'bg-red-500 text-white hover:bg-red-600',
   ghost: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100',
+  success: 'bg-[#22C55E] text-white hover:bg-[#16A34A]',
 }
 
 const BASE = 'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed'

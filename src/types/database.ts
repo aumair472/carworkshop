@@ -10,6 +10,7 @@ type ContentStatus = 'draft' | 'published' | 'archived'
 type LeadStatus = 'new' | 'contacted' | 'in_progress' | 'converted' | 'closed'
 type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff' | 'seo_editor'
 type AuditAction = 'create' | 'update' | 'delete' | 'publish' | 'unpublish' | 'generate'
+type ApprovalStatusEnum = 'pending' | 'approved' | 'resubmission_required' | 'rejected'
 type PageTypeEnum = 'brand' | 'brand_service' | 'brand_location' | 'model' | 'model_service' | 'model_location' | 'model_service_location' | 'service' | 'location'
 
 export type Database = {
@@ -330,6 +331,27 @@ export type Database = {
           status: ContentStatus
           generated_at: string
           updated_at: string
+          approval_status: ApprovalStatusEnum
+          assignee_id: string | null
+          assigned_at: string | null
+          created_by: string | null
+          country: string
+          state: string | null
+          template: string
+          arabic_title: string | null
+          meta_keyword: string | null
+          schema_headline: string | null
+          schema_description: string | null
+          image_png_url: string | null
+          image_webp_url: string | null
+          image_title: string | null
+          image_alt: string | null
+          short_description: string | null
+          arabic_short_description: string | null
+          arabic_complete_description: string | null
+          is_expensive_car: boolean
+          display_in_footer: boolean
+          use_dynamic_content: boolean
         }
         Insert: {
           id?: string
@@ -349,6 +371,27 @@ export type Database = {
           status?: ContentStatus
           generated_at?: string
           updated_at?: string
+          approval_status?: ApprovalStatusEnum
+          assignee_id?: string | null
+          assigned_at?: string | null
+          created_by?: string | null
+          country?: string
+          state?: string | null
+          template?: string
+          arabic_title?: string | null
+          meta_keyword?: string | null
+          schema_headline?: string | null
+          schema_description?: string | null
+          image_png_url?: string | null
+          image_webp_url?: string | null
+          image_title?: string | null
+          image_alt?: string | null
+          short_description?: string | null
+          arabic_short_description?: string | null
+          arabic_complete_description?: string | null
+          is_expensive_car?: boolean
+          display_in_footer?: boolean
+          use_dynamic_content?: boolean
         }
         Update: {
           page_type?: PageTypeEnum
@@ -366,6 +409,27 @@ export type Database = {
           template_id?: string | null
           status?: ContentStatus
           updated_at?: string
+          approval_status?: ApprovalStatusEnum
+          assignee_id?: string | null
+          assigned_at?: string | null
+          created_by?: string | null
+          country?: string
+          state?: string | null
+          template?: string
+          arabic_title?: string | null
+          meta_keyword?: string | null
+          schema_headline?: string | null
+          schema_description?: string | null
+          image_png_url?: string | null
+          image_webp_url?: string | null
+          image_title?: string | null
+          image_alt?: string | null
+          short_description?: string | null
+          arabic_short_description?: string | null
+          arabic_complete_description?: string | null
+          is_expensive_car?: boolean
+          display_in_footer?: boolean
+          use_dynamic_content?: boolean
         }
         Relationships: []
       }
@@ -476,6 +540,24 @@ export type Database = {
           scheduled_at: string | null
           created_at: string
           updated_at: string
+          approval_status: ApprovalStatusEnum
+          assignee_id: string | null
+          assigned_at: string | null
+          country: string
+          state: string | null
+          arabic_title: string | null
+          arabic_content: string | null
+          arabic_excerpt: string | null
+          blockquote: string | null
+          arabic_blockquote: string | null
+          is_featured: boolean
+          meta_keyword: string | null
+          image_png_url: string | null
+          image_webp_url: string | null
+          image_title: string | null
+          image_alt: string | null
+          tags: string | null
+          tags_ar: string | null
         }
         Insert: {
           id?: string
@@ -494,6 +576,24 @@ export type Database = {
           scheduled_at?: string | null
           created_at?: string
           updated_at?: string
+          approval_status?: ApprovalStatusEnum
+          assignee_id?: string | null
+          assigned_at?: string | null
+          country?: string
+          state?: string | null
+          arabic_title?: string | null
+          arabic_content?: string | null
+          arabic_excerpt?: string | null
+          blockquote?: string | null
+          arabic_blockquote?: string | null
+          is_featured?: boolean
+          meta_keyword?: string | null
+          image_png_url?: string | null
+          image_webp_url?: string | null
+          image_title?: string | null
+          image_alt?: string | null
+          tags?: string | null
+          tags_ar?: string | null
         }
         Update: {
           title?: string
@@ -510,6 +610,24 @@ export type Database = {
           published_at?: string | null
           scheduled_at?: string | null
           updated_at?: string
+          approval_status?: ApprovalStatusEnum
+          assignee_id?: string | null
+          assigned_at?: string | null
+          country?: string
+          state?: string | null
+          arabic_title?: string | null
+          arabic_content?: string | null
+          arabic_excerpt?: string | null
+          blockquote?: string | null
+          arabic_blockquote?: string | null
+          is_featured?: boolean
+          meta_keyword?: string | null
+          image_png_url?: string | null
+          image_webp_url?: string | null
+          image_title?: string | null
+          image_alt?: string | null
+          tags?: string | null
+          tags_ar?: string | null
         }
         Relationships: []
       }
@@ -684,6 +802,111 @@ export type Database = {
         }
         Relationships: []
       }
+      faqs: {
+        Row: {
+          id: string
+          country: string
+          name: string
+          arabic_name: string | null
+          description_html: string
+          arabic_description_html: string
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          country?: string
+          name: string
+          arabic_name?: string | null
+          description_html?: string
+          arabic_description_html?: string
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          country?: string
+          name?: string
+          arabic_name?: string | null
+          description_html?: string
+          arabic_description_html?: string
+          display_order?: number
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      language_keys: {
+        Row: {
+          id: string
+          key_name: string
+          slug: string
+          value_en: string
+          value_ar: string
+          comment: string | null
+          is_published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key_name: string
+          slug: string
+          value_en?: string
+          value_ar?: string
+          comment?: string | null
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          key_name?: string
+          slug?: string
+          value_en?: string
+          value_ar?: string
+          comment?: string | null
+          is_published?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      search_content: {
+        Row: {
+          id: string
+          title: string
+          url: string
+          keywords: string[]
+          description: string | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          url: string
+          keywords?: string[]
+          description?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          title?: string
+          url?: string
+          keywords?: string[]
+          description?: string | null
+          display_order?: number
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -693,6 +916,7 @@ export type Database = {
       user_role: UserRole
       audit_action: AuditAction
       page_type: PageTypeEnum
+      approval_status: ApprovalStatusEnum
     }
     CompositeTypes: Record<string, never>
   }
