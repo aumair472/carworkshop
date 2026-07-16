@@ -12,9 +12,10 @@ import { CTABanner } from '@/components/sections/CTABanner'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { generateMeta } from '@/lib/page-engine/meta'
 import { generateServicePageSchema } from '@/lib/page-engine/schema'
-import { getPageContent, getPageSeo } from '@/lib/page-engine/content'
+import { getPageContent, getPageSeo, getPageTemplateRow } from '@/lib/page-engine/content'
 import { resolveSEO, seoToMetadata, renderSchemas } from '@/lib/seo'
 import { BrandServiceLocationView } from '@/components/views/BrandServiceLocationView'
+import { ServicePageTemplate } from '@/components/templates/ServicePageTemplate'
 import type { FAQItem, ServiceWithPrice, Location } from '@/types'
 
 interface PageProps {
@@ -108,10 +109,11 @@ export default async function ModelServicePage({ params }: PageProps) {
 
   if (!service) notFound()
 
-  const [{ data: allServices }, { data: locationMapsData }, content] = await Promise.all([
+  const [{ data: allServices }, { data: locationMapsData }, content, templateRow] = await Promise.all([
     supabase.from('services').select('*').eq('status', 'published').order('sort_order'),
     supabase.from('brand_location_map').select('location_id, is_active, locations(*)').eq('brand_id', brand.id).eq('is_active', true),
     getPageContent(`${brandSlug}/${modelSlug}/${serviceSlug}`),
+    getPageTemplateRow(`${brandSlug}/${modelSlug}/${serviceSlug}`),
   ])
 
   const locationMaps = (locationMapsData ?? []) as unknown as LocationMapRow[]
@@ -146,6 +148,59 @@ export default async function ModelServicePage({ params }: PageProps) {
 
   const servicesWithPrice: ServiceWithPrice[] = (allServices ?? []).map(s => ({ ...s }))
   const customSchemas = renderSchemas((await getPageSeo(`${brandSlug}/${modelSlug}/${serviceSlug}`)).schemas ?? [], { faqs: faqs.map(f => ({ question: f.question, answer: f.answer })) })
+
+  // 'template_1' opts a generated page into the SMC-style Service Page layout;
+  // anything else (unset/'template_2'/legacy values) preserves the current
+  // default Fixter-style rendering below, so existing published pages don't change.
+  if (templateRow?.template === 'template_1') {
+    const { data: brandsData } = await supabase.from('brands').select('*').eq('status', 'published').order('sort_order')
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+        {customSchemas.map((json, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />)}
+
+        <div className="bg-mesh py-8 border-b border-hairline">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Breadcrumb items={[
+              { label: 'Home', href: '/' },
+              { label: 'Brands', href: '/brands' },
+              { label: brand.name, href: `/brands/${brandSlug}` },
+              { label: model.name, href: `/brands/${brandSlug}/${modelSlug}` },
+              { label: service.name },
+            ]} />
+          </div>
+        </div>
+
+        <ServicePageTemplate
+          page={{
+            h1,
+            highlight_text: templateRow.highlight_text,
+            key_points: templateRow.key_points,
+            icon_image_png_url: templateRow.icon_image_png_url,
+            icon_image_webp_url: templateRow.icon_image_webp_url,
+            icon_image_alt: templateRow.icon_image_alt,
+            image_bottom_png_url: templateRow.image_bottom_png_url,
+            image_bottom_webp_url: templateRow.image_bottom_webp_url,
+            image_bottom_alt: templateRow.image_bottom_alt,
+            image_large_url: templateRow.image_large_url,
+            image_mobile_url: templateRow.image_mobile_url,
+            short_description: service.short_description,
+            mid_category_title: templateRow.mid_category_title,
+          }}
+          content={content}
+          mainContentHtml={mainContentHtml}
+          sourcePageSlug={`${brandSlug}/${modelSlug}/${serviceSlug}`}
+          brands={brandsData ?? []}
+          locations={locations}
+          relatedServices={servicesWithPrice}
+          currentServiceId={service.id}
+          brandSlug={brandSlug}
+          modelSlug={modelSlug}
+          serviceSlug={serviceSlug}
+        />
+      </>
+    )
+  }
 
   return (
     <>

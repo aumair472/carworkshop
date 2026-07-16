@@ -9,8 +9,10 @@ import { WhyChooseUs } from '@/components/sections/WhyChooseUs'
 import { CTABanner } from '@/components/sections/CTABanner'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { generateServicePageSchema } from '@/lib/page-engine/schema'
+import { getPageTemplateRow } from '@/lib/page-engine/content'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
-import type { Service, ServiceWithPrice, BrandModel, PageContent } from '@/types'
+import { BrandPageTemplate } from '@/components/templates/BrandPageTemplate'
+import type { Service, ServiceWithPrice, BrandModel, PageContent, FAQItem } from '@/types'
 
 interface PageProps {
   params: Promise<{ brand: string }>
@@ -81,11 +83,46 @@ export default async function BrandPage({ params }: PageProps) {
   const c = (brand.content_json ?? {}) as PageContent
   const h1 = c.hero?.h1 || `${brand.name} Service & Repair in UAE`
   const subtitle = c.hero?.subheadline || brand.description || `Expert ${brand.name} maintenance and repair by certified technicians across UAE.`
+  const templateRow = await getPageTemplateRow(brandSlug)
 
   const schema = generateServicePageSchema({
     brand: brand.name,
     url: `https://carworkshop.ae/brands/${brandSlug}`,
   })
+
+  // 'template_2' opts a generated page into the SMC-style Brand Page layout;
+  // unset/legacy values preserve the current default rendering below so
+  // existing published brand pages don't change.
+  if (templateRow?.template === 'template_2') {
+    const faqs: FAQItem[] = c.faqs && c.faqs.length > 0 ? c.faqs.map(f => ({ question: f.q, answer: f.a })) : []
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+        <div className="bg-mesh py-8 border-b border-hairline">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Brands', href: '/brands' }, { label: brand.name }]} />
+          </div>
+        </div>
+
+        <BrandPageTemplate
+          page={{
+            h1,
+            highlight_text: templateRow.highlight_text,
+            image_png_url: brand.logo_url,
+            image_webp_url: null,
+            image_alt: brand.name,
+            short_description: subtitle,
+          }}
+          content={c}
+          mainContentHtml={c.main_content}
+          sourcePageSlug={brandSlug}
+          services={services}
+          faqs={faqs}
+          brandSlug={brandSlug}
+        />
+      </>
+    )
+  }
 
   return (
     <>

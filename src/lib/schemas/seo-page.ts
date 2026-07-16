@@ -28,6 +28,21 @@ export const SeoPageUpdateSchema = z.object({
   status: z.enum(['draft', 'published', 'archived']).optional(),
   is_expensive_car: z.boolean().optional(),
   display_in_footer: z.boolean().optional(),
+  // SMC-style extended fields (migration 010)
+  highlight_text: z.string().max(500).nullable().optional(),
+  mid_category_title: z.string().max(300).nullable().optional(),
+  key_points: z.string().max(2000).nullable().optional(),
+  icon_image_png_url: z.string().url().nullable().optional(),
+  icon_image_webp_url: z.string().url().nullable().optional(),
+  icon_image_title: z.string().max(200).nullable().optional(),
+  icon_image_alt: z.string().max(300).nullable().optional(),
+  image_bottom_png_url: z.string().url().nullable().optional(),
+  image_bottom_webp_url: z.string().url().nullable().optional(),
+  image_bottom_title: z.string().max(200).nullable().optional(),
+  image_bottom_alt: z.string().max(300).nullable().optional(),
+  image_large_url: z.string().url().nullable().optional(),
+  image_mobile_url: z.string().url().nullable().optional(),
+  content_json: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
 export const SeoPageCreateSchema = SeoPageUpdateSchema.extend({

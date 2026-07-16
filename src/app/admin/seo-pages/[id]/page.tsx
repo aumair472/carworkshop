@@ -21,7 +21,7 @@ export default async function EditSeoPagePage({ params }: { params: Promise<{ id
   const initial: SeoPageFormValues = {
     country: page.country ?? 'AE',
     state: page.state ?? '',
-    template: page.template ?? 'standard',
+    template: page.template ?? 'template_1',
     h1: page.h1,
     arabic_title: page.arabic_title ?? '',
     slug: page.slug,
@@ -42,6 +42,20 @@ export default async function EditSeoPagePage({ params }: { params: Promise<{ id
     status: page.status,
     is_expensive_car: page.is_expensive_car ?? false,
     display_in_footer: page.display_in_footer ?? false,
+    highlight_text: page.highlight_text ?? '',
+    mid_category_title: page.mid_category_title ?? '',
+    key_points: page.key_points ?? '',
+    icon_image_png_url: page.icon_image_png_url ?? '',
+    icon_image_webp_url: page.icon_image_webp_url ?? '',
+    icon_image_title: page.icon_image_title ?? '',
+    icon_image_alt: page.icon_image_alt ?? '',
+    image_bottom_png_url: page.image_bottom_png_url ?? '',
+    image_bottom_webp_url: page.image_bottom_webp_url ?? '',
+    image_bottom_title: page.image_bottom_title ?? '',
+    image_bottom_alt: page.image_bottom_alt ?? '',
+    image_large_url: page.image_large_url ?? '',
+    image_mobile_url: page.image_mobile_url ?? '',
+    content_json: content,
   }
 
   return (

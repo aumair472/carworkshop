@@ -9,8 +9,9 @@ import { LocationPills } from '@/components/sections/LocationPills'
 import { CTABanner } from '@/components/sections/CTABanner'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { generateServicePageSchema } from '@/lib/page-engine/schema'
-import { getPageContent } from '@/lib/page-engine/content'
-import type { BrandModel, Location, FAQItem } from '@/types'
+import { getPageContent, getPageTemplateRow } from '@/lib/page-engine/content'
+import { ServicePageTemplate } from '@/components/templates/ServicePageTemplate'
+import type { BrandModel, Location, FAQItem, ServiceWithPrice } from '@/types'
 
 interface LocationMapRow {
   location_id: string
@@ -42,7 +43,8 @@ export async function BrandServiceLocationView({ brandSlug, serviceSlug, locatio
   const locations: Location[] = locationMaps.filter(lm => lm.locations).map(lm => lm.locations as Location)
 
   const price = service.starting_price ?? null
-  const content = await getPageContent(`${brandSlug}/${serviceSlug}/${locationSlug}`)
+  const slug = `${brandSlug}/${serviceSlug}/${locationSlug}`
+  const [content, templateRow] = await Promise.all([getPageContent(slug), getPageTemplateRow(slug)])
   const h1 = content?.hero?.h1 || `${brand.name} ${service.name} in ${location.name}`
   const subtitle = content?.hero?.subheadline || `Expert ${brand.name} ${service.name} in ${location.name} by certified technicians. Transparent pricing, doorstep service.`
   const mainContentHtml = content?.main_content || service.content || null
@@ -64,6 +66,55 @@ export async function BrandServiceLocationView({ brandSlug, serviceSlug, locatio
     faqs,
     ...(price ? { price } : {}),
   })
+
+  // 'template_1' opts a generated page into the SMC-style Service Page layout;
+  // unset/legacy values preserve the current default rendering below so
+  // existing published pages don't change.
+  if (templateRow?.template === 'template_1') {
+    const servicesWithPrice: ServiceWithPrice[] = []
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+        <div className="bg-mesh py-8 border-b border-hairline">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Breadcrumb items={[
+              { label: 'Home', href: '/' },
+              { label: 'Brands', href: '/brands' },
+              { label: brand.name, href: `/brands/${brandSlug}` },
+              { label: service.name, href: `/brands/${brandSlug}/${serviceSlug}` },
+              { label: location.name },
+            ]} />
+          </div>
+        </div>
+
+        <ServicePageTemplate
+          page={{
+            h1,
+            highlight_text: templateRow.highlight_text,
+            key_points: templateRow.key_points,
+            icon_image_png_url: templateRow.icon_image_png_url,
+            icon_image_webp_url: templateRow.icon_image_webp_url,
+            icon_image_alt: templateRow.icon_image_alt,
+            image_bottom_png_url: templateRow.image_bottom_png_url,
+            image_bottom_webp_url: templateRow.image_bottom_webp_url,
+            image_bottom_alt: templateRow.image_bottom_alt,
+            image_large_url: templateRow.image_large_url,
+            image_mobile_url: templateRow.image_mobile_url,
+            short_description: service.short_description,
+            mid_category_title: templateRow.mid_category_title,
+          }}
+          content={content}
+          mainContentHtml={mainContentHtml}
+          sourcePageSlug={slug}
+          locations={locations}
+          relatedServices={servicesWithPrice}
+          currentServiceId={service.id}
+          brandSlug={brandSlug}
+          serviceSlug={serviceSlug}
+        />
+      </>
+    )
+  }
 
   return (
     <>

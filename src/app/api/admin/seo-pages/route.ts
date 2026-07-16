@@ -6,7 +6,8 @@ import { logAudit } from '@/lib/audit'
 import { revalidatePage } from '@/lib/revalidate'
 import { nextStatusOnSave } from '@/lib/approval'
 import { SeoPageCreateSchema } from '@/lib/schemas/seo-page'
-import type { ApprovalStatus } from '@/types'
+import type { ApprovalStatus, PageContent } from '@/types'
+import type { Json } from '@/types/database'
 
 // GET /api/admin/seo-pages — filtered list for the SEO Pages module.
 export async function GET(req: NextRequest) {
@@ -50,7 +51,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid data', details: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { complete_description, short_description, arabic_short_description, arabic_complete_description, ...rest } = parsed.data
+    const { complete_description, short_description, arabic_short_description, arabic_complete_description, content_json, ...rest } = parsed.data
+
+    const incoming = (content_json ?? {}) as PageContent
+    const merged: PageContent = { ...incoming }
+    if (complete_description) merged.main_content = sanitizeHTML(complete_description)
+    if (incoming.cost_description) merged.cost_description = sanitizeHTML(incoming.cost_description)
+    if (incoming.why_important) merged.why_important = sanitizeHTML(incoming.why_important)
+    if (incoming.why_choose_us_brand) merged.why_choose_us_brand = sanitizeHTML(incoming.why_choose_us_brand)
+    if (incoming.service_section?.description) {
+      merged.service_section = { ...incoming.service_section, description: sanitizeHTML(incoming.service_section.description) }
+    }
 
     const service = createServiceClient()
     const { data, error } = await service
@@ -61,7 +72,7 @@ export async function POST(req: NextRequest) {
         short_description: short_description ? sanitizeHTML(short_description) : null,
         arabic_short_description: arabic_short_description ? sanitizeHTML(arabic_short_description) : null,
         arabic_complete_description: arabic_complete_description ? sanitizeHTML(arabic_complete_description) : null,
-        content_json: complete_description ? { main_content: sanitizeHTML(complete_description) } : null,
+        content_json: Object.keys(merged).length > 0 ? (merged as unknown as Json) : null,
         approval_status: nextStatusOnSave(acting.role),
         created_by: acting.id,
       })

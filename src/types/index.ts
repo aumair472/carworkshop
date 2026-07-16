@@ -83,6 +83,28 @@ export interface PageContent {
     button_text?: string
     button_link?: string
   }
+  key_points_icons?: string[]
+  service_packages?: { name: string; price: string; image?: string; link?: string }[]
+  warranty_policy?: {
+    service?: { months: number; km: number; items: string[] }
+    electrical?: { months: number; km: number; items: string[] }
+    ac?: { months: number; km: number; items: string[] }
+    batteries?: { months: number; km: number; items: string[] }
+  }
+  quick_service_links?: { icon?: string; label: string; href: string }[]
+  how_it_works?: {
+    step1_title?: string; step1_desc?: string
+    step2_title?: string; step2_desc?: string
+    step3_title?: string; step3_desc?: string
+    step4_title?: string; step4_desc?: string
+  }
+  service_section?: { title?: string; description?: string }
+  price_guarantee_text?: string
+  cost_description?: string
+  why_important?: string
+  why_choose_us_brand?: string
+  app_section?: { show?: boolean; title?: string; steps?: string[] }
+  reviews?: { rating: number; text: string; name: string }[]
 }
 
 // Static page section model stored in static_pages.sections_json

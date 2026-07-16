@@ -38,16 +38,33 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: 'Invalid data', details: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { complete_description, short_description, arabic_short_description, arabic_complete_description, ...rest } = parsed.data
+    const { complete_description, short_description, arabic_short_description, arabic_complete_description, content_json, ...rest } = parsed.data
 
     const service = createServiceClient()
 
-    // Complete Description lives in content_json.main_content — merge, don't clobber.
+    // Complete Description + structured content_json fields all live in content_json — merge, don't clobber.
     let contentUpdate: Record<string, unknown> = {}
-    if (complete_description !== undefined) {
+    if (complete_description !== undefined || content_json !== undefined) {
       const { data: existing } = await service.from('generated_pages').select('content_json').eq('id', id).single()
       const current = (existing?.content_json ?? {}) as PageContent
-      contentUpdate = { content_json: { ...current, main_content: complete_description ? sanitizeHTML(complete_description) : null } }
+      const incoming = (content_json ?? {}) as PageContent
+      const merged: PageContent = { ...current, ...incoming }
+      if (complete_description !== undefined) {
+        merged.main_content = complete_description ? sanitizeHTML(complete_description) : null
+      }
+      if (incoming.cost_description !== undefined) {
+        merged.cost_description = incoming.cost_description ? sanitizeHTML(incoming.cost_description) : incoming.cost_description
+      }
+      if (incoming.why_important !== undefined) {
+        merged.why_important = incoming.why_important ? sanitizeHTML(incoming.why_important) : incoming.why_important
+      }
+      if (incoming.why_choose_us_brand !== undefined) {
+        merged.why_choose_us_brand = incoming.why_choose_us_brand ? sanitizeHTML(incoming.why_choose_us_brand) : incoming.why_choose_us_brand
+      }
+      if (incoming.service_section?.description) {
+        merged.service_section = { ...incoming.service_section, description: sanitizeHTML(incoming.service_section.description) }
+      }
+      contentUpdate = { content_json: merged }
     }
 
     const { data, error } = await service
