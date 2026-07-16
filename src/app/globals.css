@@ -69,6 +69,16 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Admin shell owns its own inner scroll (see admin/layout.tsx .admin-shell);
+   lock html/body to the viewport there so the document can't also scroll and
+   produce a second scrollbar + trailing blank space. Public pages are
+   untouched (no .admin-shell in their DOM). */
+html:has(body .admin-shell),
+body:has(.admin-shell) {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* ─── Premium public-site design system ─────────────────────────────────── */
 
 /* Display headings: tighter tracking + balanced wrapping */

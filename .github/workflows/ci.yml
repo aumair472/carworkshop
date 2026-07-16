@@ -13,9 +13,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: carworkshop   # app lives in this subdirectory
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +24,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: carworkshop/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

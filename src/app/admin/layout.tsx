@@ -10,7 +10,7 @@ export const metadata = {
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const acting = await getActingUser()
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
+    <div className="admin-shell flex h-screen overflow-hidden bg-[#F8F9FC]">
       <AdminSidebar role={acting?.role} />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {children}
