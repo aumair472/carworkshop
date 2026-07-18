@@ -146,6 +146,24 @@ export function ServicePageTemplate({
         </section>
       )}
 
+      {/* 8b. Cost description / why important / why choose us (brand) — same
+          content_json fields BrandPageTemplate renders, now also on this template. */}
+      {(content?.cost_description || content?.why_important || content?.why_choose_us_brand) && (
+        <section className="py-12 bg-[#F9FAFB]">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {content.cost_description && (
+              <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.cost_description) }} />
+            )}
+            {content.why_important && (
+              <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.why_important) }} />
+            )}
+            {content.why_choose_us_brand && (
+              <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.why_choose_us_brand) }} />
+            )}
+          </div>
+        </section>
+      )}
+
       {/* 9. Why Choose Us */}
       <WhyChooseUs heading={content?.why_choose_us?.heading} items={content?.why_choose_us?.items} />
 

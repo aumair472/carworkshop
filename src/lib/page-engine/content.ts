@@ -46,6 +46,7 @@ export interface PageTemplateRow {
   highlight_text: string | null
   mid_category_title: string | null
   key_points: string | null
+  short_description: string | null
   icon_image_png_url: string | null
   icon_image_webp_url: string | null
   icon_image_title: string | null
@@ -63,7 +64,7 @@ export async function getPageTemplateRow(slug: string): Promise<PageTemplateRow 
     const supabase = await createPublicSupabase()
     const { data } = await supabase
       .from('generated_pages')
-      .select('template, highlight_text, mid_category_title, key_points, icon_image_png_url, icon_image_webp_url, icon_image_title, icon_image_alt, image_bottom_png_url, image_bottom_webp_url, image_bottom_title, image_bottom_alt, image_large_url, image_mobile_url')
+      .select('template, highlight_text, mid_category_title, key_points, short_description, icon_image_png_url, icon_image_webp_url, icon_image_title, icon_image_alt, image_bottom_png_url, image_bottom_webp_url, image_bottom_title, image_bottom_alt, image_large_url, image_mobile_url')
       .eq('slug', slug)
       .eq('status', 'published')
       .maybeSingle()

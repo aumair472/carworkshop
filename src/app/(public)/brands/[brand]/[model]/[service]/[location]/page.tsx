@@ -131,6 +131,22 @@ export default async function LocationServicePage({ params }: PageProps) {
         </section>
       )}
 
+      {(content?.cost_description || content?.why_important || content?.why_choose_us_brand) && (
+        <section className="py-12 bg-[#F9FAFB]">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {content.cost_description && (
+              <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.cost_description) }} />
+            )}
+            {content.why_important && (
+              <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.why_important) }} />
+            )}
+            {content.why_choose_us_brand && (
+              <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.why_choose_us_brand) }} />
+            )}
+          </div>
+        </section>
+      )}
+
       <WhyChooseUs heading={content?.why_choose_us?.heading} items={content?.why_choose_us?.items} />
       <FAQSection faqs={faqs} title={`${service.name} in ${location.name} — FAQ`} />
       <RelatedServices services={servicesWithPrice} currentServiceId={service.id} brandSlug={brandSlug} modelSlug={modelSlug} />

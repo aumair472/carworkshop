@@ -184,7 +184,7 @@ export default async function ModelServicePage({ params }: PageProps) {
             image_bottom_alt: templateRow.image_bottom_alt,
             image_large_url: templateRow.image_large_url,
             image_mobile_url: templateRow.image_mobile_url,
-            short_description: service.short_description,
+            short_description: templateRow.short_description || service.short_description,
             mid_category_title: templateRow.mid_category_title,
           }}
           content={content}
