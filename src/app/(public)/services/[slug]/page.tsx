@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createPublicSupabase } from '@/lib/supabase/public'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sanitizeHTML } from '@/lib/sanitize'
-import { HeroSection } from '@/components/sections/HeroSection'
+import { HeroSection, DEFAULT_HERO_STATS } from '@/components/sections/HeroSection'
 import { WhyChooseUs } from '@/components/sections/WhyChooseUs'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { LocationsSection } from '@/components/sections/LocationsSection'
@@ -92,6 +92,10 @@ export default async function ServicePage({ params }: PageProps) {
         h1={h1}
         subtitle={subtitle}
         ctaLabel={`Book ${service.name}`}
+        heroStats={[
+          { value: service.starting_price != null ? `From AED ${service.starting_price}` : 'Get a Quote', label: 'Starting Price' },
+          ...DEFAULT_HERO_STATS.slice(1),
+        ]}
       />
 
       {mainContentHtml && (

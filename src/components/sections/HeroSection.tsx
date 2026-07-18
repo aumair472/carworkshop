@@ -14,7 +14,7 @@ interface HeroSectionProps {
   heroStats?: HeroStat[]
 }
 
-const DEFAULT_HERO_STATS: HeroStat[] = [
+export const DEFAULT_HERO_STATS: HeroStat[] = [
   { value: 'From AED 149', label: 'Starting Price' },
   { value: '10,000+', label: 'Cars Serviced' },
   { value: '4.9★', label: 'Average Rating' },
