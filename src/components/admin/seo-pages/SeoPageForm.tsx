@@ -208,9 +208,10 @@ export function SeoPageForm({ pageId, initial, brands }: Props) {
   }
 
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://carworkshop.ae'
-  const previewHref = v.template === 'template_2'
-    ? `/brands/${v.slug || 'preview'}`
-    : `/services/${v.slug || 'preview'}`
+  // All generated pages are served under /brands/{slug} regardless of template
+  // (there is no /services/{slug} route for generated_pages — that path is a
+  // different, single-segment catalog entity). Only show the link once slug exists.
+  const previewHref = v.slug ? `/brands/${v.slug}` : null
 
   const warranty = v.content_json.warranty_policy ?? EMPTY_CONTENT_JSON.warranty_policy!
   const howItWorks = v.content_json.how_it_works ?? EMPTY_CONTENT_JSON.how_it_works!
@@ -234,7 +235,7 @@ export function SeoPageForm({ pageId, initial, brands }: Props) {
                 {t.label}
               </label>
             ))}
-            <a href={previewHref} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">View Template</a>
+            {previewHref && <a href={previewHref} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">View Template</a>}
           </div>
         </div>
 

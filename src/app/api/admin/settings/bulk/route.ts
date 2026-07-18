@@ -23,16 +23,22 @@ export async function PUT(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
 
     const now = new Date().toISOString()
-    const rows = parsed.data.settings.map(s => ({
-      key: s.key,
-      value: (s.value ?? null) as Json,
-      updated_at: now,
-      updated_by: user.id,
-    }))
+    // website_settings.value is NOT NULL — skip unset optional fields (e.g. no
+    // logo/favicon chosen yet) instead of writing null and crashing the upsert.
+    const rows = parsed.data.settings
+      .filter(s => s.value != null)
+      .map(s => ({
+        key: s.key,
+        value: s.value as Json,
+        updated_at: now,
+        updated_by: user.id,
+      }))
 
     const service = createServiceClient()
-    const { error } = await service.from('website_settings').upsert(rows, { onConflict: 'key' })
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (rows.length > 0) {
+      const { error } = await service.from('website_settings').upsert(rows, { onConflict: 'key' })
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     for (const p of SETTINGS_PATHS) { try { revalidatePath(p) } catch { /* best-effort */ } }
     try { revalidatePath('/', 'layout') } catch { /* best-effort */ }

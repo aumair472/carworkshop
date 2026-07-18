@@ -5,7 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { AdminCard } from '@/components/admin/ui/AdminCard'
-import { AdminInput } from '@/components/admin/ui/AdminField'
+import { AdminInput, AdminTextarea, AdminLabel } from '@/components/admin/ui/AdminField'
 import { AdminButton } from '@/components/admin/ui/AdminButton'
 import { AdminTabs } from '@/components/admin/ui/AdminTabs'
 import { EntitySeoTab } from '@/components/admin/EntitySeoTab'
@@ -48,6 +48,10 @@ function PolicyTab({ slug, title, viewHref }: { slug: string; title: string; vie
   const [c, setC] = useState<PolicyContent>({ h1: title, last_updated: '', content: '' })
   const [status, setStatus] = useState<Status>('draft')
   const [seoJson, setSeoJson] = useState<SeoJson>({})
+  const [subTitle, setSubTitle] = useState('')
+  const [metaKeyword, setMetaKeyword] = useState('')
+  const [h3Text, setH3Text] = useState('')
+  const [shortDescription, setShortDescription] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -55,12 +59,16 @@ function PolicyTab({ slug, title, viewHref }: { slug: string; title: string; vie
       try {
         const res = await fetch(`/api/admin/pages/static/${slug}`)
         if (cancelled || !res.ok) return
-        const d = await res.json() as { page: { content_json: Partial<PolicyContent> | null; status: Status; seo_json?: SeoJson | null } }
+        const d = await res.json() as { page: {
+          content_json: Partial<PolicyContent> | null; status: Status; seo_json?: SeoJson | null
+          sub_title?: string | null; meta_keyword?: string | null; h3_text?: string | null; short_description?: string | null
+        } }
         if (cancelled) return
         const cj = d.page.content_json ?? {}
         setC({ h1: cj.h1 ?? title, last_updated: cj.last_updated ?? '', content: cj.content ?? '' })
         setStatus(d.page.status)
         setSeoJson(d.page.seo_json ?? {})
+        setSubTitle(d.page.sub_title ?? ''); setMetaKeyword(d.page.meta_keyword ?? ''); setH3Text(d.page.h3_text ?? ''); setShortDescription(d.page.short_description ?? '')
       } catch { /* ignore */ } finally { if (!cancelled) setLoading(false) }
     })()
     return () => { cancelled = true }
@@ -72,14 +80,17 @@ function PolicyTab({ slug, title, viewHref }: { slug: string; title: string; vie
     try {
       const res = await fetch(`/api/admin/pages/static/${slug}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content_json: c, status: nextStatus ?? status }),
+        body: JSON.stringify({
+          title, content_json: c, status: nextStatus ?? status,
+          sub_title: subTitle || null, meta_keyword: metaKeyword || null, h3_text: h3Text || null, short_description: shortDescription || null,
+        }),
       })
       const d = await res.json() as { error?: string }
       if (!res.ok) { toast.error(d.error ?? 'Save failed', { id: t }); return }
       if (nextStatus) setStatus(nextStatus)
       toast.success(nextStatus === 'published' ? `${title} published` : `${title} saved`, { id: t })
     } catch { toast.error('Network error', { id: t }) } finally { setSaving(false) }
-  }, [slug, title, c, status])
+  }, [slug, title, c, status, subTitle, metaKeyword, h3Text, shortDescription])
 
   if (loading) return <EditorSkeleton />
 
@@ -99,6 +110,13 @@ function PolicyTab({ slug, title, viewHref }: { slug: string; title: string; vie
         </div>
         <RichTextEditor value={c.content} onChange={v => setC(p => ({ ...p, content: v }))} placeholder={`Write the ${title.toLowerCase()}…`} minHeight={500} />
         <p className="text-xs text-zinc-400">Status: <span className="font-medium">{status}</span></p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <AdminInput label="Sub Title" value={subTitle} onChange={e => setSubTitle(e.target.value)} placeholder="Page subtitle shown below H1" />
+          <AdminInput label="Meta Keyword" value={metaKeyword} onChange={e => setMetaKeyword(e.target.value)} placeholder="keyword1, keyword2, keyword3" />
+        </div>
+        <AdminTextarea label="H3 Text" rows={2} value={h3Text} onChange={e => setH3Text(e.target.value)} placeholder="Secondary heading shown on the page" />
+        <div><AdminLabel>Short Description</AdminLabel><RichTextEditor value={shortDescription} onChange={setShortDescription} minHeight={140} /></div>
 
         <details className="rounded-lg border border-zinc-200">
           <summary className="cursor-pointer px-4 py-2.5 text-sm font-semibold text-zinc-800">SEO (Advanced)</summary>

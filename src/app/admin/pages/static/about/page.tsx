@@ -124,7 +124,9 @@ export default function AboutEditor() {
 
         <AdminSectionCard title="SEO (Advanced)" defaultOpen={false}>
           <StaticSeoCard seoJson={p.seoJson} setSeoJson={p.setSeoJson} saveSeo={() => void p.saveSeo()} saving={p.saving}
-            pageUrl="https://carworkshop.ae/about" defaultTitle={c.hero.h1} defaultDescription={c.hero.subheadline} autoSchemas={['Organization', 'FAQPage (from FAQs)']} />
+            pageUrl="https://carworkshop.ae/about" defaultTitle={c.hero.h1} defaultDescription={c.hero.subheadline} autoSchemas={['Organization', 'FAQPage (from FAQs)']}
+            subTitle={p.subTitle} setSubTitle={p.setSubTitle} metaKeyword={p.metaKeyword} setMetaKeyword={p.setMetaKeyword}
+            h3Text={p.h3Text} setH3Text={p.setH3Text} shortDescription={p.shortDescription} setShortDescription={p.setShortDescription} />
         </AdminSectionCard>
 
         <div className="flex justify-end gap-2 pt-2">

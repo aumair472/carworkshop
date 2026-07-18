@@ -4,8 +4,9 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Search, Plus, Pencil, Copy, ChevronUp, ChevronDown } from 'lucide-react'
+import { Search, Plus, Pencil, Copy, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import { PillToggle } from '@/components/admin/ui/PillToggle'
+import { ConfirmModal } from '@/components/admin/ConfirmModal'
 import { COUNTRIES, countryName, countryFlag } from '@/lib/geo'
 import type { Faq } from '@/types'
 
@@ -20,6 +21,8 @@ export function FaqTable({ initialRows }: Props) {
   const [fName, setFName] = useState('')
   const [applied, setApplied] = useState({ country: '', name: '' })
   const [selected, setSelected] = useState<string[]>([])
+  const [deleteTarget, setDeleteTarget] = useState<Faq | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const filtered = useMemo(() => rows.filter(r => {
     if (applied.country && r.country !== applied.country) return false
@@ -79,6 +82,18 @@ export function FaqTable({ initialRows }: Props) {
 
   function toggleRow(id: string) {
     setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const res = await fetch(`/api/admin/faqs/${deleteTarget.id}`, { method: 'DELETE' })
+    setDeleting(false)
+    if (res.ok) {
+      setRows(rs => rs.filter(r => r.id !== deleteTarget.id))
+      toast.success('Deleted')
+    } else toast.error('Delete failed')
+    setDeleteTarget(null)
   }
 
   return (
@@ -146,6 +161,7 @@ export function FaqTable({ initialRows }: Props) {
                       <span className="inline-flex gap-1">
                         <Link href={`/admin/faqs/${row.id}`} aria-label="Edit" className="h-7 w-7 inline-flex items-center justify-center rounded bg-[#22C55E] text-white hover:bg-[#16A34A]"><Pencil size={13} /></Link>
                         <button type="button" aria-label="Duplicate" onClick={() => void duplicate(row)} className="h-7 w-7 inline-flex items-center justify-center rounded bg-[#22C55E] text-white hover:bg-[#16A34A]"><Copy size={13} /></button>
+                        <button type="button" aria-label={`Delete ${row.name}`} onClick={() => setDeleteTarget(row)} className="h-7 w-7 inline-flex items-center justify-center rounded bg-[#DC2626] text-white hover:bg-red-700"><Trash2 size={13} /></button>
                       </span>
                     </td>
                   </tr>
@@ -158,6 +174,17 @@ export function FaqTable({ initialRows }: Props) {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete FAQ"
+        message={`Delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

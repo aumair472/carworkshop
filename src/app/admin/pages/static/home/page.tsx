@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { MediaPicker } from '@/components/admin/MediaPicker'
 import { FAQRepeater } from '@/components/admin/FAQRepeater'
-import { AdminInput, AdminLabel } from '@/components/admin/ui/AdminField'
+import { RichTextEditor } from '@/components/admin/RichTextEditor'
+import { AdminInput, AdminTextarea, AdminLabel } from '@/components/admin/ui/AdminField'
 import { AdminButton } from '@/components/admin/ui/AdminButton'
 import { AdminSectionCard } from '@/components/admin/ui/AdminSectionCard'
 import { Repeater, MultiSelect, inputCls } from '@/components/admin/ui/Repeater'
@@ -89,6 +90,10 @@ export default function HomeEditor() {
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDesc, setSeoDesc] = useState('')
   const [seoJson, setSeoJson] = useState<SeoJson>({})
+  const [subTitle, setSubTitle] = useState('')
+  const [metaKeyword, setMetaKeyword] = useState('')
+  const [h3Text, setH3Text] = useState('')
+  const [shortDescription, setShortDescription] = useState('')
   const [services, setServices] = useState<NamedRow[]>([])
   const [brands, setBrands] = useState<NamedRow[]>([])
   const [locations, setLocations] = useState<NamedRow[]>([])
@@ -102,8 +107,12 @@ export default function HomeEditor() {
         ])
         if (cancelled) return
         if (pageRes.ok) {
-          const d = await pageRes.json() as { page: { content_json: Partial<HomeContent> | null; status: Status; seo_title: string | null; seo_description: string | null; seo_json?: SeoJson | null } }
+          const d = await pageRes.json() as { page: {
+            content_json: Partial<HomeContent> | null; status: Status; seo_title: string | null; seo_description: string | null; seo_json?: SeoJson | null
+            sub_title?: string | null; meta_keyword?: string | null; h3_text?: string | null; short_description?: string | null
+          } }
           setC(merge(d.page.content_json)); setStatus(d.page.status); setSeoTitle(d.page.seo_title ?? ''); setSeoDesc(d.page.seo_description ?? ''); setSeoJson(d.page.seo_json ?? {})
+          setSubTitle(d.page.sub_title ?? ''); setMetaKeyword(d.page.meta_keyword ?? ''); setH3Text(d.page.h3_text ?? ''); setShortDescription(d.page.short_description ?? '')
         }
         if (svc.ok) { const d = await svc.json() as { services: NamedRow[] }; setServices(d.services ?? []) }
         if (br.ok) { const d = await br.json() as { brands: NamedRow[] }; setBrands(d.brands ?? []) }
@@ -119,7 +128,11 @@ export default function HomeEditor() {
     try {
       const res = await fetch('/api/admin/pages/static/home', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Home', content_json: c, seo_title: seoTitle || null, seo_description: seoDesc || null, status: nextStatus ?? status }),
+        body: JSON.stringify({
+          title: 'Home', content_json: c, seo_title: seoTitle || null, seo_description: seoDesc || null,
+          sub_title: subTitle || null, meta_keyword: metaKeyword || null, h3_text: h3Text || null, short_description: shortDescription || null,
+          status: nextStatus ?? status,
+        }),
       })
       const d = await res.json() as { error?: string }
       if (!res.ok) { toast.error(d.error ?? 'Save failed', { id: t }); return }
@@ -127,7 +140,7 @@ export default function HomeEditor() {
       setSavedLabel(`Saved ${new Date().toLocaleTimeString('en-AE')}`)
       toast.success(nextStatus === 'published' ? 'Home page published!' : 'Home page saved', { id: t })
     } catch { toast.error('Network error', { id: t }) } finally { setSaving(false) }
-  }, [c, seoTitle, seoDesc, status])
+  }, [c, seoTitle, seoDesc, subTitle, metaKeyword, h3Text, shortDescription, status])
 
   if (loading) return <EditorSkeleton />
 
@@ -147,6 +160,12 @@ export default function HomeEditor() {
         <>
           <StatusCard status={status} onChange={setStatus} viewHref="/" savedLabel={savedLabel} />
           <SeoCard slug="" title={seoTitle} description={seoDesc} onTitle={setSeoTitle} onDescription={setSeoDesc} />
+          <AdminSectionCard title="More SEO">
+            <AdminInput label="Sub Title" value={subTitle} onChange={e => setSubTitle(e.target.value)} placeholder="Page subtitle shown below H1" />
+            <AdminInput label="Meta Keyword" value={metaKeyword} onChange={e => setMetaKeyword(e.target.value)} placeholder="keyword1, keyword2, keyword3" />
+            <AdminTextarea label="H3 Text" rows={2} value={h3Text} onChange={e => setH3Text(e.target.value)} placeholder="Secondary heading shown on the page" />
+            <div><AdminLabel>Short Description</AdminLabel><RichTextEditor value={shortDescription} onChange={setShortDescription} minHeight={140} /></div>
+          </AdminSectionCard>
           <InfoCard rows={[{ k: 'Type', v: 'Static — Home' }, { k: 'URL', v: '/', mono: true }]} />
         </>
       }
