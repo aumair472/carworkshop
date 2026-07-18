@@ -12,7 +12,8 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, hint, charCount, maxLength, id, className = '', value, ...props }, ref) => {
-    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+    // Prefer `name` over `label` for the fallback id — see Input.tsx for why.
+    const inputId = id ?? props.name ?? label?.toLowerCase().replace(/\s+/g, '-')
     const currentLength = typeof value === 'string' ? value.length : 0
 
     return (

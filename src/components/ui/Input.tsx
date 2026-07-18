@@ -10,7 +10,10 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, id, className = '', ...props }, ref) => {
-    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+    // Prefer `name` over `label` for the fallback id — repeated-list inputs (e.g.
+    // FAQRepeater rows) share the same label text but must have unique ids, or
+    // <label htmlFor> only ever associates with the first duplicate in the DOM.
+    const inputId = id ?? props.name ?? label?.toLowerCase().replace(/\s+/g, '-')
 
     return (
       <div className="flex flex-col gap-1">
