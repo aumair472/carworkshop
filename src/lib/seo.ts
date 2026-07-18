@@ -60,7 +60,11 @@ export function seoToMetadata(seo: ResolvedSEO, urlForOg?: string, keywords?: st
       description: seo.ogDescription,
       type: 'website',
       ...(urlForOg ? { url: urlForOg } : {}),
-      ...(seo.ogImage ? { images: [{ url: seo.ogImage }] } : {}),
+      // Next.js does not deep-merge `openGraph` across metadata segments — a page
+      // returning its own openGraph object without `images` silently drops the
+      // root layout's default image entirely (rather than inheriting it). Always
+      // supply a fallback so every page keeps a valid social preview image.
+      images: [{ url: seo.ogImage || '/og-default.jpg', width: 1200, height: 630, alt: 'CarWorkshop.ae' }],
     },
   }
 }

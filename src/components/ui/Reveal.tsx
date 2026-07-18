@@ -40,7 +40,11 @@ export function Reveal({ children, variant = 'up', delay = 0, as, className = ''
       { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
     )
     io.observe(el)
-    return () => io.disconnect()
+    // Safety net: content must never stay permanently invisible if the observer
+    // fails to fire (e.g. element never resolves as intersecting due to a layout
+    // timing edge case). Reveal unconditionally after a short delay either way.
+    const fallback = window.setTimeout(() => el.classList.add('is-visible'), 1200)
+    return () => { io.disconnect(); window.clearTimeout(fallback) }
   }, [])
 
   return (
