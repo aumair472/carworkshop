@@ -14,7 +14,7 @@ import { CTABanner } from '@/components/sections/CTABanner'
 import { Reveal } from '@/components/ui/Reveal'
 import { generateOrganizationSchema } from '@/lib/page-engine/schema'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
-import { getStaticPageSeo } from '@/lib/get-page-seo'
+import { getStaticPageSeo, getStaticPageMetaKeyword } from '@/lib/get-page-seo'
 import { getSettings } from '@/lib/hooks/useSettings'
 import type { ServiceWithPrice, FAQItem } from '@/types'
 
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = data?.seo_title || DEFAULT_TITLE
   const description = data?.seo_description || DEFAULT_DESC
   const seo = resolveSEO(await getStaticPageSeo('home'), { title, description, url: 'https://carworkshop.ae' })
-  return seoToMetadata(seo, 'https://carworkshop.ae')
+  return seoToMetadata(seo, 'https://carworkshop.ae', await getStaticPageMetaKeyword('home'))
 }
 
 // Shape of static_pages.content_json for the home page (all optional).

@@ -8,7 +8,7 @@ import { CTABanner } from '@/components/sections/CTABanner'
 import { generateCollectionSchema } from '@/lib/page-engine/schema'
 import { getListingContent } from '@/lib/listing-content'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
-import { getStaticPageSeo } from '@/lib/get-page-seo'
+import { getStaticPageSeo, getStaticPageMetaKeyword } from '@/lib/get-page-seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = resolveSEO(await getStaticPageSeo('blog-listing'), {
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: 'Car care tips, maintenance guides, and automotive news for UAE drivers. Expert advice from certified technicians.',
     url: 'https://carworkshop.ae/blog',
   })
-  return seoToMetadata(seo, 'https://carworkshop.ae/blog')
+  return seoToMetadata(seo, 'https://carworkshop.ae/blog', await getStaticPageMetaKeyword('blog-listing'))
 }
 
 export const revalidate = 3600

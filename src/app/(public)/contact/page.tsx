@@ -11,9 +11,9 @@ const DEFAULT_DESC = 'Book car service, repair, or maintenance in UAE. Get a fre
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createPublicSupabase()
-  const { data } = await supabase.from('static_pages').select('seo_title, seo_description, seo_json').eq('slug', 'contact').eq('status', 'published').maybeSingle()
+  const { data } = await supabase.from('static_pages').select('seo_title, seo_description, seo_json, meta_keyword').eq('slug', 'contact').eq('status', 'published').maybeSingle()
   const seo = resolveSEO(data?.seo_json, { title: data?.seo_title || DEFAULT_TITLE, description: data?.seo_description || DEFAULT_DESC, url: 'https://carworkshop.ae/contact' })
-  return seoToMetadata(seo, 'https://carworkshop.ae/contact')
+  return seoToMetadata(seo, 'https://carworkshop.ae/contact', data?.meta_keyword)
 }
 
 export const revalidate = 3600

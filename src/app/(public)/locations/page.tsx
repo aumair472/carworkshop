@@ -7,7 +7,7 @@ import { Reveal } from '@/components/ui/Reveal'
 import { generateCollectionSchema } from '@/lib/page-engine/schema'
 import { getListingContent } from '@/lib/listing-content'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
-import { getStaticPageSeo } from '@/lib/get-page-seo'
+import { getStaticPageSeo, getStaticPageMetaKeyword } from '@/lib/get-page-seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = resolveSEO(await getStaticPageSeo('locations-listing'), {
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: 'Find car repair and service centres across UAE — Dubai, Abu Dhabi, Sharjah, Ajman, RAK, and more. Doorstep service available.',
     url: 'https://carworkshop.ae/locations',
   })
-  return seoToMetadata(seo, 'https://carworkshop.ae/locations')
+  return seoToMetadata(seo, 'https://carworkshop.ae/locations', await getStaticPageMetaKeyword('locations-listing'))
 }
 
 export const revalidate = 3600

@@ -14,9 +14,9 @@ const DEFAULT_DESC = "CarWorkshop.ae is UAE's trusted car repair platform connec
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createPublicSupabase()
-  const { data } = await supabase.from('static_pages').select('seo_title, seo_description, seo_json').eq('slug', 'about').eq('status', 'published').maybeSingle()
+  const { data } = await supabase.from('static_pages').select('seo_title, seo_description, seo_json, meta_keyword').eq('slug', 'about').eq('status', 'published').maybeSingle()
   const seo = resolveSEO(data?.seo_json, { title: data?.seo_title || DEFAULT_TITLE, description: data?.seo_description || DEFAULT_DESC, url: 'https://carworkshop.ae/about' })
-  return seoToMetadata(seo, 'https://carworkshop.ae/about')
+  return seoToMetadata(seo, 'https://carworkshop.ae/about', data?.meta_keyword)
 }
 
 export const revalidate = 86400
@@ -37,7 +37,7 @@ const FALLBACK_MAIN = `
 
 export default async function AboutPage() {
   const supabase = await createPublicSupabase()
-  const { data } = await supabase.from('static_pages').select('content_json').eq('slug', 'about').eq('status', 'published').maybeSingle()
+  const { data } = await supabase.from('static_pages').select('content_json, sub_title').eq('slug', 'about').eq('status', 'published').maybeSingle()
   const c = (data?.content_json ?? {}) as AboutContent
   const schema = generateOrganizationSchema()
 
@@ -52,7 +52,7 @@ export default async function AboutPage() {
       <PageHeader
         breadcrumb={[{ label: 'Home', href: '/' }, { label: 'About' }]}
         title={c.hero?.h1 || 'About CarWorkshop.ae'}
-        subtitle={c.hero?.subheadline || "UAE's trusted platform for transparent, reliable car repair and maintenance."}
+        subtitle={data?.sub_title || c.hero?.subheadline || "UAE's trusted platform for transparent, reliable car repair and maintenance."}
       />
 
       {c.stats?.visible !== false && stats.length > 0 && (

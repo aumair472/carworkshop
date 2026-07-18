@@ -13,8 +13,8 @@ import type { UserRole } from '@/types'
 
 interface NavItem { label: string; href: string; icon: LucideIcon }
 
-// Hrefs that the restricted seo_editor role may NOT see.
-const SEO_EDITOR_HIDDEN = ['/admin/pages/generate', '/admin/media', '/admin/settings', '/admin/users']
+// The ONLY hrefs the restricted seo_editor role may see.
+const SEO_EDITOR_ALLOWED = ['/admin/seo-pages', '/admin/seo-blog', '/admin/service-content', '/admin/static-page-seo', '/admin/search-content']
 
 // Main nav — ServiceMyCar order.
 const MAIN_NAV: NavItem[] = [
@@ -56,7 +56,7 @@ function SidebarInner({ role }: { role?: UserRole }) {
   const [catalogOpen, setCatalogOpen] = useState(false)
 
   const filterRole = (items: NavItem[]) =>
-    role === 'seo_editor' ? items.filter(i => !SEO_EDITOR_HIDDEN.includes(i.href)) : items
+    role === 'seo_editor' ? items.filter(i => SEO_EDITOR_ALLOWED.includes(i.href)) : items
 
   const q = query.trim().toLowerCase()
   const filterQuery = (items: NavItem[]) =>

@@ -1,4 +1,5 @@
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
+import { AccessDeniedBanner } from '@/components/admin/AccessDeniedBanner'
 import { SeoPagesTable, type SeoPageRow } from '@/components/admin/seo-pages/SeoPagesTable'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getActingUser } from '@/lib/auth-guard'
@@ -43,6 +44,7 @@ export default async function SeoPagesPage() {
     <>
       <AdminTopbar title="Manage SEO PAGES" />
       <div className="p-6">
+        <AccessDeniedBanner />
         <SeoPagesTable
           initialRows={rows}
           brands={brands ?? []}

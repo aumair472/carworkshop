@@ -38,17 +38,24 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/admin', req.url))
   }
 
-  // Role restriction: seo_editor is blocked from generate/settings/users/media.
+  // Role restriction: seo_editor may reach ONLY the 5 SEO modules (allowlist,
+  // not blocklist) — everything else under /admin including the dashboard itself
+  // is denied. /admin/pages/static is the Static Page SEO editor (separate from
+  // the /admin/static-page-seo list view) and must stay allowed alongside it.
   if (user && !isLoginPath) {
     const { data: u } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle()
     if (u?.role === 'seo_editor') {
-      const blockedPages = ['/admin/pages/generate', '/admin/settings', '/admin/users', '/admin/media']
-      if (blockedPages.some(r => pathname.startsWith(r))) {
-        return NextResponse.redirect(new URL('/admin?error=access_denied', req.url))
-      }
-      const blockedApi = ['/api/admin/generate', '/api/admin/settings', '/api/admin/users', '/api/admin/media']
-      if (blockedApi.some(r => pathname.startsWith(r))) {
-        return NextResponse.json({ error: 'Forbidden — SEO editors cannot access this' }, { status: 403 })
+      const allowedPages = ['/admin/seo-pages', '/admin/seo-blog', '/admin/service-content', '/admin/static-page-seo', '/admin/pages/static', '/admin/search-content']
+      const allowedApi = ['/api/admin/seo-pages', '/api/admin/seo-blog', '/api/admin/service-content', '/api/admin/static-page-seo', '/api/admin/pages/static', '/api/admin/search-content', '/api/admin/media', '/api/admin/me', '/api/admin/logout']
+
+      if (pathname.startsWith('/api/admin/')) {
+        if (!allowedApi.some(p => pathname === p || pathname.startsWith(p + '/'))) {
+          return NextResponse.json({ error: 'Forbidden — SEO editors cannot access this' }, { status: 403 })
+        }
+      } else if (pathname.startsWith('/admin')) {
+        if (!allowedPages.some(p => pathname === p || pathname.startsWith(p + '/'))) {
+          return NextResponse.redirect(new URL('/admin/seo-pages?error=access_denied', req.url))
+        }
       }
     }
   }

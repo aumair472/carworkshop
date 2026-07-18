@@ -9,9 +9,9 @@ const DEFAULT_DESC = 'How CarWorkshop.ae collects, uses, and protects your perso
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createPublicSupabase()
-  const { data } = await supabase.from('static_pages').select('seo_title, seo_description, seo_json').eq('slug', 'privacy').eq('status', 'published').maybeSingle()
+  const { data } = await supabase.from('static_pages').select('seo_title, seo_description, seo_json, meta_keyword').eq('slug', 'privacy').eq('status', 'published').maybeSingle()
   const seo = resolveSEO(data?.seo_json, { title: data?.seo_title || DEFAULT_TITLE, description: data?.seo_description || DEFAULT_DESC, url: 'https://carworkshop.ae/privacy' })
-  return seoToMetadata(seo, 'https://carworkshop.ae/privacy')
+  return seoToMetadata(seo, 'https://carworkshop.ae/privacy', data?.meta_keyword)
 }
 
 export const revalidate = 86400

@@ -9,9 +9,14 @@ export const metadata = {
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const acting = await getActingUser()
+
+  // No acting user only ever means /admin/login (proxy.ts redirects every other
+  // /admin/* path to login when unauthenticated) — render it standalone, no chrome.
+  if (!acting) return <>{children}</>
+
   return (
     <div className="admin-shell flex h-screen overflow-hidden bg-[#F8F9FC]">
-      <AdminSidebar role={acting?.role} />
+      <AdminSidebar role={acting.role} />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {children}
       </div>

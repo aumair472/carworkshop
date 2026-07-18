@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { logAudit } from '@/lib/audit'
 import { revalidatePage } from '@/lib/revalidate'
+import { sanitizeHTML } from '@/lib/sanitize'
 import { z } from 'zod'
 import { STATIC_PAGES } from '../route'
 import type { Json } from '@/types/database'
@@ -23,6 +24,11 @@ const UpdateSchema = z.object({
   content_json: z.record(z.string(), z.unknown()).optional(),
   seo_title: z.string().max(70).nullable().optional(),
   seo_description: z.string().max(200).nullable().optional(),
+  seo_json: z.record(z.string(), z.unknown()).optional(),
+  sub_title: z.string().max(300).nullable().optional(),
+  h3_text: z.string().max(300).nullable().optional(),
+  short_description: z.string().max(20000).nullable().optional(),
+  meta_keyword: z.string().max(300).nullable().optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
 })
 
@@ -71,10 +77,15 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
       title: parsed.data.title ?? titleFor(slug),
       seo_title: parsed.data.seo_title ?? null,
       seo_description: parsed.data.seo_description ?? null,
+      sub_title: parsed.data.sub_title ?? null,
+      h3_text: parsed.data.h3_text ?? null,
+      short_description: parsed.data.short_description ? sanitizeHTML(parsed.data.short_description) : null,
+      meta_keyword: parsed.data.meta_keyword ?? null,
       status: parsed.data.status ?? 'draft',
       updated_at: new Date().toISOString(),
       ...(parsed.data.sections_json !== undefined ? { sections_json: parsed.data.sections_json as unknown as Json } : {}),
       ...(parsed.data.content_json !== undefined ? { content_json: parsed.data.content_json as unknown as Json } : {}),
+      ...(parsed.data.seo_json !== undefined ? { seo_json: parsed.data.seo_json as unknown as Json } : {}),
     }
 
     const service = createServiceClient()

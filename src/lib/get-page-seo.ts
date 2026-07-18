@@ -20,3 +20,14 @@ export const getLocationSeo = (locationId: string) => pick('locations', 'id', lo
 export const getStaticPageSeo = (pageSlug: string) => pick('static_pages', 'slug', pageSlug)
 export const getGeneratedPageSeo = (slug: string) => pick('generated_pages', 'slug', slug)
 export const getBlogPostSeo = (postSlug: string) => pick('blog_posts', 'slug', postSlug)
+
+// Meta keyword tag (comma-separated) set via the Static Page SEO admin editor.
+export async function getStaticPageMetaKeyword(pageSlug: string): Promise<string | null> {
+  try {
+    const supabase = await createPublicSupabase()
+    const { data } = await supabase.from('static_pages').select('meta_keyword').eq('slug', pageSlug).maybeSingle()
+    return data?.meta_keyword ?? null
+  } catch {
+    return null
+  }
+}

@@ -7,7 +7,7 @@ import { Reveal } from '@/components/ui/Reveal'
 import { generateCollectionSchema } from '@/lib/page-engine/schema'
 import { getListingContent } from '@/lib/listing-content'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
-import { getStaticPageSeo } from '@/lib/get-page-seo'
+import { getStaticPageSeo, getStaticPageMetaKeyword } from '@/lib/get-page-seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = resolveSEO(await getStaticPageSeo('brands-listing'), {
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: 'We service all major car brands across UAE — BMW, Mercedes, Toyota, Audi, Nissan, Honda, and more. Certified technicians for every make and model.',
     url: 'https://carworkshop.ae/brands',
   })
-  return seoToMetadata(seo, 'https://carworkshop.ae/brands')
+  return seoToMetadata(seo, 'https://carworkshop.ae/brands', await getStaticPageMetaKeyword('brands-listing'))
 }
 
 export const revalidate = 3600

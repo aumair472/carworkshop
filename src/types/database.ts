@@ -1165,42 +1165,54 @@ export type Database = {
         Row: {
           content_json: Json
           created_at: string
+          h3_text: string | null
           id: string
+          meta_keyword: string | null
           og_image_url: string | null
           sections_json: Json
           seo_description: string | null
           seo_json: Json
           seo_title: string | null
+          short_description: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
+          sub_title: string | null
           title: string
           updated_at: string
         }
         Insert: {
           content_json?: Json
           created_at?: string
+          h3_text?: string | null
           id?: string
+          meta_keyword?: string | null
           og_image_url?: string | null
           sections_json?: Json
           seo_description?: string | null
           seo_json?: Json
           seo_title?: string | null
+          short_description?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
+          sub_title?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           content_json?: Json
           created_at?: string
+          h3_text?: string | null
           id?: string
+          meta_keyword?: string | null
           og_image_url?: string | null
           sections_json?: Json
           seo_description?: string | null
           seo_json?: Json
           seo_title?: string | null
+          short_description?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
+          sub_title?: string | null
           title?: string
           updated_at?: string
         }

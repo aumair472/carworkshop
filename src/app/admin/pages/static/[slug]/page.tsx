@@ -9,7 +9,16 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { StatusToggle } from '@/components/admin/StatusToggle'
 import { FAQRepeater } from '@/components/admin/FAQRepeater'
+import { RichTextEditor } from '@/components/admin/RichTextEditor'
+import { MediaPicker } from '@/components/admin/MediaPicker'
 import type { ContentStatus, StaticSection, StaticSectionType } from '@/types'
+
+function counterColor(len: number, max: number): string {
+  const pct = (len / max) * 100
+  if (pct > 100) return 'text-[#DC2626]'
+  if (pct >= 80) return 'text-[#D97706]'
+  return 'text-[#16A34A]'
+}
 
 interface NamedRow { id: string; name: string }
 
@@ -46,6 +55,11 @@ export default function StaticEditor() {
   const [status, setStatus] = useState<ContentStatus>('draft')
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDesc, setSeoDesc] = useState('')
+  const [subTitle, setSubTitle] = useState('')
+  const [metaKeyword, setMetaKeyword] = useState('')
+  const [h3Text, setH3Text] = useState('')
+  const [shortDescription, setShortDescription] = useState('')
+  const [ogImage, setOgImage] = useState<string | null>(null)
   const [sections, setSections] = useState<StaticSection[]>([])
   const [addType, setAddType] = useState<StaticSectionType>('hero')
   const [services, setServices] = useState<NamedRow[]>([])
@@ -60,9 +74,17 @@ export default function StaticEditor() {
           fetch('/api/admin/brands'),
         ])
         if (!pageRes.ok) { setError('Page not found'); return }
-        const d = await pageRes.json() as { page: { title: string; status: ContentStatus; seo_title: string | null; seo_description: string | null; sections_json: StaticSection[] } }
+        const d = await pageRes.json() as { page: {
+          title: string; status: ContentStatus; seo_title: string | null; seo_description: string | null
+          sub_title?: string | null; meta_keyword?: string | null; h3_text?: string | null; short_description?: string | null
+          seo_json?: { og_image?: string | null } | null
+          sections_json: StaticSection[]
+        } }
         setTitle(d.page.title); setStatus(d.page.status)
         setSeoTitle(d.page.seo_title ?? ''); setSeoDesc(d.page.seo_description ?? '')
+        setSubTitle(d.page.sub_title ?? ''); setMetaKeyword(d.page.meta_keyword ?? '')
+        setH3Text(d.page.h3_text ?? ''); setShortDescription(d.page.short_description ?? '')
+        setOgImage(d.page.seo_json?.og_image ?? null)
         setSections(Array.isArray(d.page.sections_json) ? d.page.sections_json : [])
         if (svcRes.ok) { const s = await svcRes.json() as { services: NamedRow[] }; setServices(s.services ?? []) }
         if (brRes.ok) { const b = await brRes.json() as { brands: NamedRow[] }; setBrands(b.brands ?? []) }
@@ -92,14 +114,21 @@ export default function StaticEditor() {
       const res = await fetch(`/api/admin/pages/static/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, sections_json: sections, seo_title: seoTitle || null, seo_description: seoDesc || null, status: nextStatus ?? status }),
+        body: JSON.stringify({
+          title, sections_json: sections,
+          seo_title: seoTitle || null, seo_description: seoDesc || null,
+          sub_title: subTitle || null, meta_keyword: metaKeyword || null,
+          h3_text: h3Text || null, short_description: shortDescription || null,
+          seo_json: { og_image: ogImage },
+          status: nextStatus ?? status,
+        }),
       })
       const d = await res.json() as { error?: string }
       if (!res.ok) { setError(d.error ?? 'Save failed'); setSavingLabel(''); return }
       if (nextStatus) setStatus(nextStatus)
       setSavingLabel(`Saved ${new Date().toLocaleTimeString('en-AE')}`)
     } catch { setError('Network error'); setSavingLabel('') }
-  }, [slug, title, sections, seoTitle, seoDesc, status])
+  }, [slug, title, sections, seoTitle, seoDesc, subTitle, metaKeyword, h3Text, shortDescription, ogImage, status])
 
   if (loading) return <div className="p-8 text-[#9CA3AF]">Loading…</div>
 
@@ -152,8 +181,35 @@ export default function StaticEditor() {
           </div>
           <div className="bg-white rounded-lg shadow-card border border-[#E5E7EB] p-6 space-y-4">
             <h3 className="text-sm font-semibold text-[#1F2937] border-b border-[#E5E7EB] pb-3">SEO</h3>
-            <Input label="SEO Title" value={seoTitle} onChange={e => setSeoTitle(e.target.value)} />
-            <Textarea label="Meta Description" rows={3} value={seoDesc} onChange={e => setSeoDesc(e.target.value)} />
+            <Input label="Sub Title" value={subTitle} onChange={e => setSubTitle(e.target.value)} placeholder="Page subtitle shown below H1" />
+            <div>
+              <Input label="Meta Title" value={seoTitle} onChange={e => setSeoTitle(e.target.value)} placeholder="SEO meta title for this page" />
+              <p className={`text-xs mt-1 text-right ${counterColor(seoTitle.length, 60)}`}>{seoTitle.length}/60</p>
+            </div>
+            <div>
+              <Input label="Meta Keyword" value={metaKeyword} onChange={e => setMetaKeyword(e.target.value)} placeholder="keyword1, keyword2, keyword3" />
+              <p className="text-xs text-[#9CA3AF] mt-1">Separate keywords with commas</p>
+            </div>
+            <div>
+              <Textarea label="Meta Description" rows={4} value={seoDesc} onChange={e => setSeoDesc(e.target.value)} placeholder="SEO meta description for this page" />
+              <p className={`text-xs mt-1 text-right ${counterColor(seoDesc.length, 160)}`}>{seoDesc.length}/160</p>
+            </div>
+            <Textarea label="H3 Text" rows={2} value={h3Text} onChange={e => setH3Text(e.target.value)} placeholder="Secondary heading shown on the page" />
+            <div>
+              <label className="block text-sm font-medium text-[#374151] mb-2">Short Description</label>
+              <RichTextEditor value={shortDescription} onChange={setShortDescription} minHeight={200} />
+            </div>
+            <MediaPicker label="Image" value={ogImage} onChange={setOgImage} />
+            <p className="text-xs text-[#9CA3AF]">Recommended: 1200×630px for OG image</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-card border border-[#E5E7EB] p-6 space-y-3">
+            <h3 className="text-sm font-semibold text-[#1F2937] border-b border-[#E5E7EB] pb-3">Google Preview</h3>
+            <div className="border border-[#E5E7EB] rounded-md p-3">
+              <p className="text-xs text-[#059669]">carworkshop.ae{slug === 'home' ? '/' : `/${slug.replace(/-listing$/, '')}`}</p>
+              <p className="text-[#1A0DAB] text-base leading-tight truncate">{seoTitle || title || 'Page title'}</p>
+              <p className="text-xs text-[#4D5156] mt-1 line-clamp-2">{seoDesc || 'Meta description preview…'}</p>
+            </div>
           </div>
         </div>
       </div>

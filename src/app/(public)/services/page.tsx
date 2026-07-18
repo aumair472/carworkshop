@@ -7,7 +7,7 @@ import { Reveal } from '@/components/ui/Reveal'
 import { generateCollectionSchema } from '@/lib/page-engine/schema'
 import { getListingContent } from '@/lib/listing-content'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
-import { getStaticPageSeo } from '@/lib/get-page-seo'
+import { getStaticPageSeo, getStaticPageMetaKeyword } from '@/lib/get-page-seo'
 import type { ServiceWithPrice } from '@/types'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: 'Browse all car repair and maintenance services in UAE. Oil change, brake service, AC repair, engine diagnostics, tyre change, and more. Book online today.',
     url: 'https://carworkshop.ae/services',
   })
-  return seoToMetadata(seo, 'https://carworkshop.ae/services')
+  return seoToMetadata(seo, 'https://carworkshop.ae/services', await getStaticPageMetaKeyword('services-listing'))
 }
 
 export const revalidate = 3600

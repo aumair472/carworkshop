@@ -48,12 +48,13 @@ function robotsToObject(robots: string): Metadata['robots'] {
 
 // Build the Next.js Metadata block from a ResolvedSEO. Pages spread this into
 // their own generateMetadata return so canonical/robots/OG are all admin-driven.
-export function seoToMetadata(seo: ResolvedSEO, urlForOg?: string): Metadata {
+export function seoToMetadata(seo: ResolvedSEO, urlForOg?: string, keywords?: string | null): Metadata {
   return {
     title: seo.title,
     description: seo.description,
     alternates: { canonical: seo.canonical },
     robots: robotsToObject(seo.robots),
+    ...(keywords ? { keywords, other: { 'meta-keywords': keywords } } : {}),
     openGraph: {
       title: seo.ogTitle,
       description: seo.ogDescription,
