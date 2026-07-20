@@ -4,10 +4,9 @@ import type { Location } from '@/types'
 interface LocationsSectionProps {
   locations: Location[]
   title?: string
-  serviceSlug?: string
 }
 
-export function LocationsSection({ locations, title = 'Find Us Across UAE', serviceSlug }: LocationsSectionProps) {
+export function LocationsSection({ locations, title = 'Find Us Across UAE' }: LocationsSectionProps) {
   return (
     <section className="py-16 lg:py-24 bg-[#F8FAFC]" aria-labelledby="locations-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,14 +16,10 @@ export function LocationsSection({ locations, title = 'Find Us Across UAE', serv
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {locations.map(location => {
-            const href = serviceSlug
-              ? `/services/${serviceSlug}/${location.slug}`
-              : `/locations/${location.slug}`
-
             return (
               <Link
                 key={location.id}
-                href={href}
+                href="/contact"
                 className="group card-premium flex items-center gap-3 p-5 text-left"
               >
                 <div className="shrink-0 w-11 h-11 rounded-2xl bg-[#EEF3FB] ring-1 ring-[#DCE6F6] flex items-center justify-center group-hover:bg-[#FDEEE4] group-hover:ring-[#F6D2BC] transition-all">
@@ -44,13 +39,6 @@ export function LocationsSection({ locations, title = 'Find Us Across UAE', serv
               </Link>
             )
           })}
-        </div>
-
-        <div className="text-center mt-10">
-          <Link href="/locations" className="inline-flex items-center gap-1 text-[#4472C4] font-semibold hover:gap-2 transition-all">
-            View All Locations
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </Link>
         </div>
       </div>
     </section>

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import {
   Search, RotateCcw, Plus, Trash2, ChevronDown, Pencil, Copy,
-  Image as ImageIcon, Link as LinkIcon, Eye,
+  Link as LinkIcon, Eye,
 } from 'lucide-react'
 import { DataTable } from '@/components/admin/DataTable'
 import { ConfirmModal } from '@/components/admin/ConfirmModal'
@@ -18,7 +18,7 @@ import { APPROVAL_STATUS_LABELS, type ApprovalStatus } from '@/types'
 
 export interface SeoPageRow extends Record<string, unknown> {
   id: string
-  page_type: string
+  template_type: string
   brand_id: string | null
   model_id: string | null
   slug: string
@@ -32,8 +32,6 @@ export interface SeoPageRow extends Record<string, unknown> {
   created_by: string | null
   country: string
   state: string | null
-  image_png_url: string | null
-  image_webp_url: string | null
   updated_at: string
   generated_at: string
   brand_name: string | null
@@ -255,7 +253,7 @@ export function SeoPagesTable({ initialRows, brands, users, isApprover }: Props)
               key: 'slug', header: 'Slug URL', render: r => (
                 <span className="inline-flex items-center gap-1 text-xs text-[#4472C4]">
                   {r.slug}
-                  <a href={`/brands/${r.slug}`} target="_blank" rel="noreferrer" aria-label="Open page"><LinkIcon size={12} /></a>
+                  <a href={`/${r.slug}`} target="_blank" rel="noreferrer" aria-label="Open page"><LinkIcon size={12} /></a>
                 </span>
               ), className: 'min-w-[140px]',
             },
@@ -264,16 +262,6 @@ export function SeoPagesTable({ initialRows, brands, users, isApprover }: Props)
               key: 'make', header: 'Car Make / Model', render: r => (
                 <span className="text-xs lowercase">{[r.brand_name, r.model_name].filter(Boolean).join(' / ') || '—'}</span>
               ),
-            },
-            {
-              key: 'png', header: 'PNG IMAGE', render: r => r.image_png_url
-                ? <a href={r.image_png_url} target="_blank" rel="noreferrer" className="text-[#EF4444]" aria-label="PNG image"><ImageIcon size={18} /></a>
-                : <span className="text-[#D1D5DB]"><ImageIcon size={18} /></span>,
-            },
-            {
-              key: 'webp', header: 'WEBP IMAGE', render: r => r.image_webp_url
-                ? <a href={r.image_webp_url} target="_blank" rel="noreferrer" className="text-[#EF4444]" aria-label="WEBP image"><ImageIcon size={18} /></a>
-                : <span className="text-[#D1D5DB]"><ImageIcon size={18} /></span>,
             },
             { key: 'approval_status', header: 'Approval Status', render: r => <ApprovalBadge status={r.approval_status} /> },
             {

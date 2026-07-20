@@ -10,7 +10,7 @@ import { AdminSectionCard } from '@/components/admin/ui/AdminSectionCard'
 import { Repeater, inputCls } from '@/components/admin/ui/Repeater'
 import { EditorChrome, StatusCard, SeoCard, InfoCard } from '@/components/admin/EditorChrome'
 import { StaticSeoCard } from '@/components/admin/StaticSeoCard'
-import { EditorSkeleton } from '@/app/admin/brands/[id]/page'
+import { EditorSkeleton } from '@/components/admin/ui/EditorSkeleton'
 
 interface Value { icon: string; title: string; description: string }
 interface Stat { value: string; label: string }

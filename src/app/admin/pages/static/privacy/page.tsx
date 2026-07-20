@@ -9,7 +9,7 @@ import { AdminInput, AdminTextarea, AdminLabel } from '@/components/admin/ui/Adm
 import { AdminButton } from '@/components/admin/ui/AdminButton'
 import { AdminTabs } from '@/components/admin/ui/AdminTabs'
 import { EntitySeoTab } from '@/components/admin/EntitySeoTab'
-import { EditorSkeleton } from '@/app/admin/brands/[id]/page'
+import { EditorSkeleton } from '@/components/admin/ui/EditorSkeleton'
 import type { SeoJson } from '@/lib/schemas/seo'
 
 export default function PrivacyTermsEditor() {

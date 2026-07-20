@@ -7,16 +7,11 @@ import { usePathname } from 'next/navigation'
 import { ChevronDown, Phone, MessageCircle, Menu, X } from 'lucide-react'
 import type { SiteSettings, NavItem } from '@/types/settings'
 
-interface NavService { name: string; slug: string; starting_price: number | null }
-interface NavBrand { name: string; slug: string; logo_url: string | null }
-
 interface HeaderProps {
   settings: SiteSettings
-  services?: NavService[]
-  brands?: NavBrand[]
 }
 
-export function Header({ settings, services = [], brands = [] }: HeaderProps) {
+export function Header({ settings }: HeaderProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -72,15 +67,9 @@ export function Header({ settings, services = [], brands = [] }: HeaderProps) {
   const positionClass = settings.header_sticky ? 'fixed top-0 left-0 right-0' : 'relative'
   const isActive = (link: string) => link !== '/' ? pathname.startsWith(link) : pathname === '/'
 
-  // DB-backed auto dropdowns for the canonical Services/Brands links.
-  function dbKey(link: string): 'services' | 'brands' | null {
-    if (link === '/services' && services.length > 0) return 'services'
-    if (link === '/brands' && brands.length > 0) return 'brands'
-    return null
-  }
-  // A nav item shows a dropdown if it has custom children OR is a DB dropdown.
+  // A nav item shows a dropdown only if it has custom children.
   function children(item: NavItem) { return item.children?.filter(c => c.label && c.link) ?? [] }
-  function hasDropdown(item: NavItem) { return children(item).length > 0 || dbKey(item.link) !== null }
+  function hasDropdown(item: NavItem) { return children(item).length > 0 }
 
   return (
     <header
@@ -113,7 +102,6 @@ export function Header({ settings, services = [], brands = [] }: HeaderProps) {
               }
               const key = item.id
               const kids = children(item)
-              const db = dbKey(item.link)
               return (
                 <div key={item.id} className="relative" onMouseEnter={() => hoverOpen(key)} onMouseLeave={hoverClose}>
                   <Link href={item.link} className={baseCls} style={active ? undefined : { color: settings.header_text_color }} aria-expanded={openMenu === key} aria-haspopup="true">
@@ -121,39 +109,13 @@ export function Header({ settings, services = [], brands = [] }: HeaderProps) {
                     <ChevronDown size={15} className={['transition-transform', openMenu === key ? 'rotate-180' : ''].join(' ')} />
                   </Link>
 
-                  {openMenu === key && (
+                  {openMenu === key && kids.length > 0 && (
                     <div className="absolute left-0 top-full pt-2 z-50">
-                      {kids.length > 0 ? (
-                        <div className="w-64 bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-2">
-                          {kids.map((c, i) => (
-                            <Link key={i} href={c.link} className="block px-3 py-2.5 rounded-xl text-sm font-medium text-[#1F2937] hover:bg-[#EEF3FB] hover:text-[#274E96] transition-colors">{c.label}</Link>
-                          ))}
-                        </div>
-                      ) : db === 'services' ? (
-                        <div className="w-72 bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-2">
-                          {services.map(s => (
-                            <Link key={s.slug} href={`/services/${s.slug}`} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EEF3FB] transition-colors">
-                              <span className="text-sm font-medium text-[#1F2937]">{s.name}</span>
-                              {s.starting_price != null && <span className="text-xs font-bold text-[#E8601C] whitespace-nowrap">From AED {s.starting_price}</span>}
-                            </Link>
-                          ))}
-                          <Link href="/services" className="block px-3 py-2 mt-1 text-xs font-bold text-[#4472C4] hover:underline border-t border-hairline">View all services →</Link>
-                        </div>
-                      ) : (
-                        <div className="w-[26rem] bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-3 grid grid-cols-2 gap-1">
-                          {brands.map(b => (
-                            <Link key={b.slug} href={`/brands/${b.slug}`} className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[#EEF3FB] transition-colors">
-                              {b.logo_url ? (
-                                <Image src={b.logo_url} alt={`${b.name} logo`} width={28} height={28} className="h-6 w-6 object-contain" />
-                              ) : (
-                                <span className="h-6 w-6 rounded-lg bg-[#EEF3FB] flex items-center justify-center text-[10px] font-bold text-[#4472C4]">{b.name.slice(0, 2).toUpperCase()}</span>
-                              )}
-                              <span className="text-sm font-medium text-[#1F2937] truncate">{b.name}</span>
-                            </Link>
-                          ))}
-                          <Link href="/brands" className="col-span-2 px-2.5 py-2 mt-1 text-xs font-bold text-[#4472C4] hover:underline border-t border-hairline">View all brands →</Link>
-                        </div>
-                      )}
+                      <div className="w-64 bg-white rounded-2xl shadow-[var(--shadow-hover)] border border-hairline p-2">
+                        {kids.map((c, i) => (
+                          <Link key={i} href={c.link} className="block px-3 py-2.5 rounded-xl text-sm font-medium text-[#1F2937] hover:bg-[#EEF3FB] hover:text-[#274E96] transition-colors">{c.label}</Link>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -215,7 +177,6 @@ export function Header({ settings, services = [], brands = [] }: HeaderProps) {
                 const key = item.id
                 const expanded = mobileExpanded === key
                 const kids = children(item)
-                const db = dbKey(item.link)
                 return (
                   <div key={item.id}>
                     <button onClick={() => setMobileExpanded(expanded ? null : key)} className={['w-full flex items-center justify-between min-h-[48px] px-3 rounded-xl text-base font-medium transition-colors', active ? 'text-[#274E96] font-semibold' : 'text-[#374151] hover:bg-[#F5F8FD]'].join(' ')} aria-expanded={expanded}>
@@ -224,16 +185,7 @@ export function Header({ settings, services = [], brands = [] }: HeaderProps) {
                     </button>
                     {expanded && (
                       <div className="pl-3 pb-1">
-                        {kids.length > 0
-                          ? kids.map((c, i) => <Link key={i} href={c.link} className="flex items-center min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">{c.label}</Link>)
-                          : db === 'services'
-                            ? services.map(s => (
-                                <Link key={s.slug} href={`/services/${s.slug}`} className="flex items-center justify-between min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">
-                                  <span>{s.name}</span>
-                                  {s.starting_price != null && <span className="text-xs font-bold text-[#E8601C]">From AED {s.starting_price}</span>}
-                                </Link>
-                              ))
-                            : brands.map(b => <Link key={b.slug} href={`/brands/${b.slug}`} className="flex items-center min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">{b.name}</Link>)}
+                        {kids.map((c, i) => <Link key={i} href={c.link} className="flex items-center min-h-[44px] px-3 rounded-xl text-sm text-[#374151] hover:bg-[#F5F8FD]">{c.label}</Link>)}
                       </div>
                     )}
                   </div>

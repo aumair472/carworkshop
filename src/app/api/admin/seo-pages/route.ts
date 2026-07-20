@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const service = createServiceClient()
     let query = service
       .from('generated_pages')
-      .select('id, page_type, brand_id, model_id, slug, h1, meta_title, meta_keyword, status, approval_status, assignee_id, assigned_at, created_by, country, state, image_png_url, image_webp_url, updated_at, generated_at')
+      .select('id, template_type, brand_id, model_id, slug, h1, meta_title, meta_keyword, status, approval_status, assignee_id, assigned_at, created_by, country, state, updated_at, generated_at')
       .order('updated_at', { ascending: false })
 
     if (sp.get('country')) query = query.eq('country', sp.get('country')!)
@@ -56,12 +56,6 @@ export async function POST(req: NextRequest) {
     const incoming = (content_json ?? {}) as PageContent
     const merged: PageContent = { ...incoming }
     if (complete_description) merged.main_content = sanitizeHTML(complete_description)
-    if (incoming.cost_description) merged.cost_description = sanitizeHTML(incoming.cost_description)
-    if (incoming.why_important) merged.why_important = sanitizeHTML(incoming.why_important)
-    if (incoming.why_choose_us_brand) merged.why_choose_us_brand = sanitizeHTML(incoming.why_choose_us_brand)
-    if (incoming.service_section?.description) {
-      merged.service_section = { ...incoming.service_section, description: sanitizeHTML(incoming.service_section.description) }
-    }
 
     const service = createServiceClient()
     const { data, error } = await service

@@ -46,7 +46,7 @@ export async function proxy(req: NextRequest) {
     const { data: u } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle()
     if (u?.role === 'seo_editor') {
       const allowedPages = ['/admin/seo-pages', '/admin/seo-blog', '/admin/service-content', '/admin/static-page-seo', '/admin/pages/static', '/admin/search-content']
-      const allowedApi = ['/api/admin/seo-pages', '/api/admin/seo-blog', '/api/admin/service-content', '/api/admin/static-page-seo', '/api/admin/pages/static', '/api/admin/search-content', '/api/admin/media', '/api/admin/me', '/api/admin/logout']
+      const allowedApi = ['/api/admin/seo-pages', '/api/admin/seo-blog', '/api/admin/service-content', '/api/admin/static-page-seo', '/api/admin/pages/static', '/api/admin/search-content', '/api/admin/media', '/api/admin/me', '/api/admin/logout', '/api/admin/brands']
 
       if (pathname.startsWith('/api/admin/')) {
         if (!allowedApi.some(p => pathname === p || pathname.startsWith(p + '/'))) {

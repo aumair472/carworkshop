@@ -39,7 +39,7 @@ export type UpdateBlogPost = Database['public']['Tables']['blog_posts']['Update'
 export type ContentStatus = 'draft' | 'published' | 'archived'
 export type LeadStatus = 'new' | 'contacted' | 'in_progress' | 'converted' | 'closed'
 export type UserRole = 'super_admin' | 'admin' | 'editor' | 'content_writer' | 'support_staff' | 'seo_editor'
-export type PageType = 'brand' | 'brand_service' | 'brand_location' | 'model' | 'model_service' | 'model_location' | 'model_service_location' | 'service' | 'location'
+export type TemplateType = 'brand' | 'brand_service' | 'brand_model' | 'brand_model_service' | 'general_service'
 export type ApprovalStatus = 'pending' | 'approved' | 'resubmission_required' | 'rejected'
 
 export const APPROVAL_STATUS_LABELS: Record<ApprovalStatus, string> = {
@@ -59,52 +59,13 @@ export interface TrustStat {
   label: string
 }
 
-// Editable overlay stored in generated_pages.content_json. Every field is
-// optional; public pages fall back to auto-generated values when absent.
+// Editable overlay stored in generated_pages.content_json. Long description
+// ("Complete Description" in the admin form) lands in main_content; every
+// other section (services, why-choose-us, CTA, other-services, locations)
+// is assembled at render time, not authored per-page.
 export interface PageContent {
-  hero?: {
-    h1?: string
-    subheadline?: string
-    image_url?: string | null
-  }
   main_content?: string | null
-  service_details?: {
-    price?: number | null
-    includes?: string[]
-  }
   faqs?: Array<{ q: string; a: string }>
-  why_choose_us?: {
-    visible?: boolean
-    heading?: string
-    items?: Array<{ icon?: string; title?: string; description?: string }>
-  }
-  cta?: {
-    headline?: string
-    button_text?: string
-    button_link?: string
-  }
-  key_points_icons?: string[]
-  service_packages?: { name: string; price: string; image?: string; link?: string }[]
-  warranty_policy?: {
-    service?: { months: number; km: number; items: string[] }
-    electrical?: { months: number; km: number; items: string[] }
-    ac?: { months: number; km: number; items: string[] }
-    batteries?: { months: number; km: number; items: string[] }
-  }
-  quick_service_links?: { icon?: string; label: string; href: string }[]
-  how_it_works?: {
-    step1_title?: string; step1_desc?: string
-    step2_title?: string; step2_desc?: string
-    step3_title?: string; step3_desc?: string
-    step4_title?: string; step4_desc?: string
-  }
-  service_section?: { title?: string; description?: string }
-  price_guarantee_text?: string
-  cost_description?: string
-  why_important?: string
-  why_choose_us_brand?: string
-  app_section?: { show?: boolean; title?: string; steps?: string[] }
-  reviews?: { rating: number; text: string; name: string }[]
 }
 
 // Static page section model stored in static_pages.sections_json
@@ -126,15 +87,3 @@ export interface BrandWithRelations extends Brand {
   brand_location_map?: Array<BrandLocationMap & { locations: Location }>
 }
 
-export interface PageMeta {
-  meta_title: string
-  meta_description: string
-}
-
-export interface MetaContext {
-  type: PageType
-  brand?: Pick<Brand, 'name' | 'slug'>
-  model?: Pick<BrandModel, 'name' | 'slug'>
-  service?: Pick<Service, 'name' | 'slug'>
-  location?: Pick<Location, 'name' | 'slug'>
-}

@@ -14,7 +14,7 @@ import { APPROVAL_STATUS_LABELS, type ApprovalStatus } from '@/types'
 
 export interface ServiceContentRow extends Record<string, unknown> {
   id: string
-  page_type: string
+  template_type: string
   brand_id: string | null
   slug: string
   h1: string
@@ -39,12 +39,17 @@ interface Props {
 
 const FILTER_INPUT = 'h-9 rounded border border-[#D1D5DB] bg-white px-2.5 text-sm text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4472C4]'
 
-// Colored page-type pills: Service gray, Brand blue (+make), Location green.
+const TEMPLATE_LABELS: Record<string, string> = {
+  brand_service: 'Brand Service',
+  brand_model_service: 'Brand Model Service',
+  general_service: 'General Service',
+}
+
+// Colored template pills.
 function PageTypeBadge({ row }: { row: ServiceContentRow }) {
-  const isLocation = ['location', 'brand_location', 'model_location'].includes(row.page_type)
-  const isBrand = !!row.brand_name && !isLocation
-  const bg = isLocation ? '#22C55E' : isBrand ? '#4472C4' : '#6B7280'
-  const label = isLocation ? 'Location Page' : isBrand ? 'Brand Page' : 'Service Page'
+  const isBrand = !!row.brand_name
+  const bg = isBrand ? '#4472C4' : '#6B7280'
+  const label = TEMPLATE_LABELS[row.template_type] ?? row.template_type
   return (
     <span className="inline-flex flex-col items-center gap-0.5">
       <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white whitespace-nowrap" style={{ backgroundColor: bg }}>{label}</span>
@@ -153,7 +158,7 @@ export function ServiceContentTable({ initialRows, isApprover }: Props) {
             { key: 'country', header: 'Country', render: r => <span className="text-xs">{countryName(r.country)}</span> },
             { key: 'state', header: 'State', render: r => <span className="text-xs">{r.state ?? '—'}</span> },
             { key: 'language', header: 'Language', render: () => <span className="text-xs font-semibold">EN</span> },
-            { key: 'page_type', header: 'Page Type', render: r => <PageTypeBadge row={r} /> },
+            { key: 'template_type', header: 'Page Type', render: r => <PageTypeBadge row={r} /> },
             { key: 'h1', header: 'Page Title', render: r => <span className="font-semibold text-[#1F2937] text-xs">{r.h1}</span>, className: 'min-w-[180px]' },
             {
               key: 'slug', header: 'Slug URL', render: r => (

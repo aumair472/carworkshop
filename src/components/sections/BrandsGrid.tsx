@@ -19,7 +19,7 @@ export function BrandsGrid({ brands, title = 'Brands We Service' }: BrandsGridPr
           {brands.map(brand => (
             <Link
               key={brand.id}
-              href={`/brands/${brand.slug}`}
+              href="/contact"
               className="group card-premium flex flex-col items-center gap-2.5 p-5"
             >
               {brand.logo_url ? (
@@ -42,16 +42,6 @@ export function BrandsGrid({ brands, title = 'Brands We Service' }: BrandsGridPr
               </span>
             </Link>
           ))}
-        </div>
-
-        <div className="text-center mt-10">
-          <Link
-            href="/brands"
-            className="inline-flex items-center gap-1 text-[#4472C4] font-semibold hover:gap-2 transition-all"
-          >
-            View All Brands
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </Link>
         </div>
       </div>
     </section>

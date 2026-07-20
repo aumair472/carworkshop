@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getActingUser } from '@/lib/auth-guard'
 
-// Service Content = generated_pages of service-ish page types (service pages,
-// brand service pages, location pages). Editing goes through /api/admin/seo-pages/[id].
-const SERVICE_PAGE_TYPES = ['service', 'brand_service', 'model_service', 'model_service_location', 'brand_location', 'model_location', 'location'] as const
+// Service Content = generated_pages using a service-ish template. Editing goes
+// through /api/admin/seo-pages/[id].
+const SERVICE_TEMPLATE_TYPES = ['brand_service', 'brand_model_service', 'general_service'] as const
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
     const service = createServiceClient()
     let query = service
       .from('generated_pages')
-      .select('id, page_type, brand_id, slug, h1, status, approval_status, assignee_id, assigned_at, created_by, country, state, updated_at, generated_at')
-      .in('page_type', [...SERVICE_PAGE_TYPES])
+      .select('id, template_type, brand_id, slug, h1, status, approval_status, assignee_id, assigned_at, created_by, country, state, updated_at, generated_at')
+      .in('template_type', [...SERVICE_TEMPLATE_TYPES])
       .order('updated_at', { ascending: false })
 
     if (sp.get('name')) query = query.ilike('h1', `%${sp.get('name')!}%`)

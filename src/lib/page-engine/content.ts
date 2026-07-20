@@ -1,75 +1,100 @@
 import { createPublicSupabase } from '@/lib/supabase/public'
-import type { PageContent } from '@/types'
+import type { PageContent, TemplateType } from '@/types'
 import type { SeoJson } from '@/lib/schemas/seo'
 
-// Editable SEO overlay (seo_json) for a generated page by its full slug.
-export async function getPageSeo(slug: string): Promise<SeoJson> {
-  try {
-    const supabase = await createPublicSupabase()
-    const { data } = await supabase
-      .from('generated_pages')
-      .select('seo_json')
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .maybeSingle()
-    return (data?.seo_json ?? {}) as SeoJson
-  } catch {
-    return {}
-  }
-}
-
-// Fetch the editable content_json overlay for a generated page by its full slug
-// (e.g. "audi/a4/oil-change"). Returns null when the page has no custom content.
-export async function getPageContent(slug: string): Promise<PageContent | null> {
-  try {
-    const supabase = await createPublicSupabase()
-    const { data } = await supabase
-      .from('generated_pages')
-      .select('content_json')
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .maybeSingle()
-    if (!data?.content_json) return null
-    return data.content_json as unknown as PageContent
-  } catch {
-    return null
-  }
-}
-
-// Flat SMC-style template columns (added in migration 010) plus `template`
-// itself, used by ServicePageTemplate / BrandPageTemplate to pick a layout and
-// source their non-content_json fields. Selected loosely (not against the
-// generated Database type, which predates migration 010) so this keeps working
-// even before `supabase gen types` is re-run.
-export interface PageTemplateRow {
-  template: string | null
-  highlight_text: string | null
-  mid_category_title: string | null
-  key_points: string | null
+export interface GeneratedPageRow {
+  id: string
+  slug: string
+  h1: string
+  template_type: TemplateType
+  brand_id: string | null
+  model_id: string | null
+  state: string | null
+  meta_title: string
+  meta_description: string
   short_description: string | null
-  icon_image_png_url: string | null
-  icon_image_webp_url: string | null
-  icon_image_title: string | null
-  icon_image_alt: string | null
-  image_bottom_png_url: string | null
-  image_bottom_webp_url: string | null
-  image_bottom_title: string | null
-  image_bottom_alt: string | null
-  image_large_url: string | null
-  image_mobile_url: string | null
+  content_json: PageContent | null
+  seo_json: SeoJson | null
 }
 
-export async function getPageTemplateRow(slug: string): Promise<PageTemplateRow | null> {
+const SELECT_COLS = 'id, slug, h1, template_type, brand_id, model_id, state, meta_title, meta_description, short_description, content_json, seo_json'
+
+export async function getPageBySlug(slug: string): Promise<GeneratedPageRow | null> {
   try {
-    const supabase = await createPublicSupabase()
+    const supabase = createPublicSupabase()
     const { data } = await supabase
       .from('generated_pages')
-      .select('template, highlight_text, mid_category_title, key_points, short_description, icon_image_png_url, icon_image_webp_url, icon_image_title, icon_image_alt, image_bottom_png_url, image_bottom_webp_url, image_bottom_title, image_bottom_alt, image_large_url, image_mobile_url')
+      .select(SELECT_COLS)
       .eq('slug', slug)
       .eq('status', 'published')
       .maybeSingle()
-    return (data as PageTemplateRow | null) ?? null
+    return (data as unknown as GeneratedPageRow | null) ?? null
   } catch {
     return null
+  }
+}
+
+export interface RelatedLink { h1: string; slug: string }
+
+export interface RelatedSections {
+  services: RelatedLink[]
+  otherServices: RelatedLink[]
+  locations: RelatedLink[]
+}
+
+async function findPublished(filters: { template_type: TemplateType; brand_id?: string | null; model_id?: string | null; excludeState?: string | null; sameState?: string | null }): Promise<RelatedLink[]> {
+  const supabase = createPublicSupabase()
+  let query = supabase
+    .from('generated_pages')
+    .select('h1, slug, state')
+    .eq('status', 'published')
+    .eq('template_type', filters.template_type)
+
+  if (filters.brand_id) query = query.eq('brand_id', filters.brand_id)
+  if (filters.model_id) query = query.eq('model_id', filters.model_id)
+  if (filters.sameState) query = query.eq('state', filters.sameState)
+  if (filters.excludeState) query = query.neq('state', filters.excludeState)
+
+  const { data } = await query.limit(20)
+  return (data ?? []).map(r => ({ h1: r.h1, slug: r.slug }))
+}
+
+// Auto-assembles the Services / Other Services / Locations We Serve sections
+// for a generated page, per template. Computed fresh on every render — never
+// stored — so newly published pages show up immediately everywhere they're
+// relevant.
+export async function getRelatedSections(page: GeneratedPageRow): Promise<RelatedSections> {
+  const empty: RelatedSections = { services: [], otherServices: [], locations: [] }
+
+  switch (page.template_type) {
+    case 'brand': {
+      let services = await findPublished({ template_type: 'brand_service', brand_id: page.brand_id, sameState: page.state })
+      if (services.length === 0) services = await findPublished({ template_type: 'general_service', sameState: page.state })
+      const otherServices = await findPublished({ template_type: 'brand_model', brand_id: page.brand_id, sameState: page.state })
+      const locations = await findPublished({ template_type: 'brand', brand_id: page.brand_id, excludeState: page.state })
+      return { services, otherServices, locations }
+    }
+    case 'brand_service': {
+      let services = await findPublished({ template_type: 'brand_model_service', brand_id: page.brand_id, sameState: page.state })
+      if (services.length === 0) services = await findPublished({ template_type: 'general_service', sameState: page.state })
+      const locations = await findPublished({ template_type: 'brand_service', brand_id: page.brand_id, excludeState: page.state })
+      return { ...empty, services, locations }
+    }
+    case 'brand_model': {
+      let services = await findPublished({ template_type: 'brand_model_service', brand_id: page.brand_id, model_id: page.model_id, sameState: page.state })
+      if (services.length === 0) services = await findPublished({ template_type: 'general_service', sameState: page.state })
+      const locations = await findPublished({ template_type: 'brand_model', brand_id: page.brand_id, model_id: page.model_id, excludeState: page.state })
+      return { ...empty, services, locations }
+    }
+    case 'brand_model_service': {
+      const locations = await findPublished({ template_type: 'brand_model_service', brand_id: page.brand_id, model_id: page.model_id, excludeState: page.state })
+      return { ...empty, locations }
+    }
+    case 'general_service': {
+      const locations = await findPublished({ template_type: 'general_service', excludeState: page.state })
+      return { ...empty, locations }
+    }
+    default:
+      return empty
   }
 }

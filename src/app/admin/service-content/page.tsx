@@ -7,9 +7,9 @@ import { canApprove } from '@/lib/approval'
 export const metadata = { title: 'Service Content' }
 export const dynamic = 'force-dynamic'
 
-import type { PageType } from '@/types'
+import type { TemplateType } from '@/types'
 
-const SERVICE_PAGE_TYPES: PageType[] = ['service', 'brand_service', 'model_service', 'model_service_location', 'brand_location', 'model_location', 'location']
+const SERVICE_TEMPLATE_TYPES: TemplateType[] = ['brand_service', 'brand_model_service', 'general_service']
 
 export default async function ServiceContentPage() {
   const acting = await getActingUser()
@@ -18,8 +18,8 @@ export default async function ServiceContentPage() {
   const [{ data: pages }, { data: brands }, { data: users }] = await Promise.all([
     service
       .from('generated_pages')
-      .select('id, page_type, brand_id, slug, h1, status, approval_status, assignee_id, assigned_at, created_by, country, state, updated_at, generated_at')
-      .in('page_type', SERVICE_PAGE_TYPES)
+      .select('id, template_type, brand_id, slug, h1, status, approval_status, assignee_id, assigned_at, created_by, country, state, updated_at, generated_at')
+      .in('template_type', SERVICE_TEMPLATE_TYPES)
       .order('updated_at', { ascending: false })
       .limit(2000),
     service.from('brands').select('id, name'),

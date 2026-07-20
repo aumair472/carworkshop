@@ -1,15 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Phone, Mail, ArrowRight } from 'lucide-react'
+import { MapPin, Phone, Mail } from 'lucide-react'
 import type { SiteSettings } from '@/types/settings'
-
-interface NamedSlug { name: string; slug: string }
 
 interface FooterProps {
   settings: SiteSettings
-  services: NamedSlug[]
-  brands: NamedSlug[]
-  locations: NamedSlug[]
 }
 
 // Inline brand glyphs (lucide v1 dropped brand icons). Single-path, 24×24.
@@ -22,7 +17,7 @@ const SOCIALS: Array<{ key: keyof SiteSettings; label: string; path: string }> =
   { key: 'social_twitter_url', label: 'X', path: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zM17.083 19.77h1.833L7.084 4.126H5.117z' },
 ]
 
-export function Footer({ settings, services, brands, locations }: FooterProps) {
+export function Footer({ settings }: FooterProps) {
   const quickLinks = [...settings.footer_custom_links].filter(l => l.column === 1).sort((a, b) => a.order - b.order)
   const socials = SOCIALS.map(s => ({ ...s, url: settings[s.key] as string | null })).filter(s => s.url)
   const extraBrands = (settings.footer_extra_brands ?? []).filter(b => b.label && b.link)
@@ -34,18 +29,14 @@ export function Footer({ settings, services, brands, locations }: FooterProps) {
       <div className="absolute inset-0 texture-dots opacity-[0.05] pointer-events-none" aria-hidden="true" />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-16">
 
-        {/* Brands We Service — wide (auto DB brands + optional extra links) */}
-        {settings.footer_show_brands_column && (brands.length > 0 || extraBrands.length > 0) && (
+        {/* Brands We Service — wide (admin-configured extra links only) */}
+        {settings.footer_show_brands_column && extraBrands.length > 0 && (
           <div className="pb-12 mb-12 border-b border-white/10">
             <FooterHeading>{settings.footer_column3_title || 'Brands We Service'}</FooterHeading>
             <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-2.5 mt-5">
-              {brands.map(b => (
-                <li key={b.slug}><Link href={`/brands/${b.slug}`} className="text-sm opacity-80 hover:opacity-100 hover:text-[#9DBBEB] transition-all">{b.name} Service</Link></li>
-              ))}
               {extraBrands.map((b, i) => (
                 <li key={`x-${i}`}><Link href={b.link} className="text-sm opacity-80 hover:opacity-100 hover:text-[#9DBBEB] transition-all">{b.label}</Link></li>
               ))}
-              <li><Link href="/brands" className="inline-flex items-center gap-1 text-sm font-semibold text-[#9DBBEB] hover:gap-2 transition-all">All Brands <ArrowRight size={14} /></Link></li>
             </ul>
           </div>
         )}
@@ -92,28 +83,6 @@ export function Footer({ settings, services, brands, locations }: FooterProps) {
               <FooterHeading>{settings.footer_quick_nav_title}</FooterHeading>
               <ul className="mt-5 space-y-2.5 text-sm">
                 {quickLinks.map(l => <li key={l.link}><Link href={l.link} className="opacity-80 hover:opacity-100 hover:text-[#9DBBEB] transition-all">{l.label}</Link></li>)}
-              </ul>
-            </div>
-          )}
-
-          {/* Services */}
-          {settings.footer_show_services_column && services.length > 0 && (
-            <div>
-              <FooterHeading>{settings.footer_column2_title}</FooterHeading>
-              <ul className="mt-5 space-y-2.5 text-sm">
-                {services.map(s => <li key={s.slug}><Link href={`/services/${s.slug}`} className="opacity-80 hover:opacity-100 hover:text-[#9DBBEB] transition-all">{s.name}</Link></li>)}
-                <li><Link href="/services" className="inline-flex items-center gap-1 font-semibold text-[#9DBBEB]">All Services <ArrowRight size={14} /></Link></li>
-              </ul>
-            </div>
-          )}
-
-          {/* Locations */}
-          {settings.footer_show_locations_column && locations.length > 0 && (
-            <div>
-              <FooterHeading>{settings.footer_column4_title}</FooterHeading>
-              <ul className="mt-5 space-y-2.5 text-sm">
-                {locations.map(l => <li key={l.slug}><Link href={`/locations/${l.slug}`} className="opacity-80 hover:opacity-100 hover:text-[#9DBBEB] transition-all">{l.name}</Link></li>)}
-                <li><Link href="/locations" className="inline-flex items-center gap-1 font-semibold text-[#9DBBEB]">All Locations <ArrowRight size={14} /></Link></li>
               </ul>
             </div>
           )}

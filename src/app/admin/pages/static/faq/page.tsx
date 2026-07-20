@@ -7,7 +7,7 @@ import { AdminButton } from '@/components/admin/ui/AdminButton'
 import { AdminSectionCard } from '@/components/admin/ui/AdminSectionCard'
 import { EditorChrome, StatusCard, SeoCard, InfoCard } from '@/components/admin/EditorChrome'
 import { StaticSeoCard } from '@/components/admin/StaticSeoCard'
-import { EditorSkeleton } from '@/app/admin/brands/[id]/page'
+import { EditorSkeleton } from '@/components/admin/ui/EditorSkeleton'
 
 interface FAQ { q: string; a: string }
 interface Category { name: string; faqs: FAQ[] }

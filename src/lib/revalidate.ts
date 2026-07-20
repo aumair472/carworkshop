@@ -1,9 +1,6 @@
 import { revalidatePath } from 'next/cache'
 
 export type RevalidateType =
-  | 'brand'
-  | 'service'
-  | 'location'
   | 'blog'
   | 'generated'
   | 'static'
@@ -17,11 +14,7 @@ const STATIC_PATHS: Record<string, string[]> = {
   faq: ['/faq'],
   privacy: ['/privacy'],
   terms: ['/terms'],
-  'services-listing': ['/services'],
-  'brands-listing': ['/brands'],
-  'locations-listing': ['/locations'],
   'blog-listing': ['/blog'],
-  brands: ['/brands'],
   blog: ['/blog'],
 }
 
@@ -29,17 +22,15 @@ const STATIC_PATHS: Record<string, string[]> = {
 // Used by both the direct helper (admin routes) and the /api/revalidate webhook.
 export function pathsForRevalidate(type: RevalidateType, slug?: string): string[] {
   switch (type) {
-    case 'brand': return [`/brands/${slug}`, '/brands', '/']
-    case 'service': return [`/services/${slug}`, '/services', '/']
-    case 'location': return [`/locations/${slug}`, '/locations']
     case 'blog': return [`/blog/${slug}`, '/blog']
     case 'generated': {
-      // slug is the full path under /brands, e.g. "audi/a4/oil-change".
+      // slug is the full page path (e.g. "dubai/audi/oil-change"); every
+      // ancestor segment (state hub, brand hub) may also embed this page in
+      // its own auto-assembled sections, so refresh the whole chain.
       if (!slug) return []
       const parts = slug.split('/')
-      const out = [`/brands/${slug}`]
-      if (parts.length >= 2) out.push(`/brands/${parts[0]}`)          // brand hub
-      if (parts.length >= 3) out.push(`/brands/${parts[0]}/${parts[1]}`) // model hub
+      const out = [`/${slug}`]
+      for (let i = 1; i < parts.length; i++) out.push(`/${parts.slice(0, i).join('/')}`)
       return out
     }
     case 'static': return slug ? (STATIC_PATHS[slug] ?? [`/${slug}`]) : []

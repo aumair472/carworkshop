@@ -15,7 +15,7 @@ export default async function SeoPagesPage() {
   const [{ data: pages }, { data: brands }, { data: users }] = await Promise.all([
     service
       .from('generated_pages')
-      .select('id, page_type, brand_id, model_id, slug, h1, meta_title, meta_keyword, status, approval_status, assignee_id, assigned_at, created_by, country, state, image_png_url, image_webp_url, updated_at, generated_at')
+      .select('id, template_type, brand_id, model_id, slug, h1, meta_title, meta_keyword, status, approval_status, assignee_id, assigned_at, created_by, country, state, updated_at, generated_at')
       .order('updated_at', { ascending: false })
       .limit(2000),
     service.from('brands').select('id, name').order('name'),

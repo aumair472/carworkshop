@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, HelpCircle, Languages, Files, FileText, Wrench,
-  FileSearch, Search, Settings, UserCog, Users, Car, MapPin, Zap,
+  FileSearch, Search, Settings, UserCog, Users,
   Image as ImageIcon, Activity, LogOut, ChevronDown, type LucideIcon,
 } from 'lucide-react'
 import { subscribeCollapsed, getCollapsed } from './sidebar-store'
@@ -31,12 +31,8 @@ const MAIN_NAV: NavItem[] = [
   { label: 'Leads', href: '/admin/leads', icon: Users },
 ]
 
-// Secondary group — backs the generate wizard / catalog data.
+// Secondary group — tools only, catalog CRUD removed.
 const CATALOG_NAV: NavItem[] = [
-  { label: 'Brands', href: '/admin/brands', icon: Car },
-  { label: 'Services', href: '/admin/services', icon: Wrench },
-  { label: 'Locations', href: '/admin/locations', icon: MapPin },
-  { label: 'Generate Pages', href: '/admin/pages/generate', icon: Zap },
   { label: 'Media', href: '/admin/media', icon: ImageIcon },
   { label: 'SEO Health', href: '/admin/seo', icon: Activity },
 ]
@@ -138,7 +134,7 @@ function SidebarInner({ role }: { role?: UserRole }) {
                 onClick={() => setCatalogOpen(o => !o)}
                 className="w-full flex items-center justify-between px-4 py-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-300"
               >
-                Catalog &amp; Tools
+                Tools
                 <ChevronDown size={14} className={catalogOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
               </button>
             )}

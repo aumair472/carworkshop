@@ -11,7 +11,7 @@ import { AdminSectionCard } from '@/components/admin/ui/AdminSectionCard'
 import { Repeater, MultiSelect, inputCls } from '@/components/admin/ui/Repeater'
 import { EditorChrome, StatusCard, SeoCard, InfoCard } from '@/components/admin/EditorChrome'
 import { EntitySeoTab } from '@/components/admin/EntitySeoTab'
-import { EditorSkeleton } from '@/app/admin/brands/[id]/page'
+import { EditorSkeleton } from '@/components/admin/ui/EditorSkeleton'
 import type { SeoJson } from '@/lib/schemas/seo'
 
 type Status = 'draft' | 'published' | 'archived'

@@ -16,26 +16,20 @@ type Freq = MetadataRoute.Sitemap[number]['changeFrequency']
 // In-memory static routes (always first).
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: BASE_URL, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
-  { url: `${BASE_URL}/services`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-  { url: `${BASE_URL}/brands`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-  { url: `${BASE_URL}/locations`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
   { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
   { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
   { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
 ]
 
 // Ordered list of DB-backed URL sources. `path` builds the public URL from a row slug.
-type Table = 'brands' | 'services' | 'locations' | 'blog_posts' | 'generated_pages'
+type Table = 'blog_posts' | 'generated_pages'
 interface Segment { table: Table; path: (slug: string) => string; freq: Freq; priority: number }
 
 const SEGMENTS: Segment[] = [
-  { table: 'brands', path: s => `${BASE_URL}/brands/${s}`, freq: 'weekly', priority: 0.8 },
-  { table: 'services', path: s => `${BASE_URL}/services/${s}`, freq: 'weekly', priority: 0.8 },
-  { table: 'locations', path: s => `${BASE_URL}/locations/${s}`, freq: 'weekly', priority: 0.7 },
   { table: 'blog_posts', path: s => `${BASE_URL}/blog/${s}`, freq: 'monthly', priority: 0.6 },
-  // Programmatic pages (model hubs, model+service, brand+service, 4D). slug is the
-  // full path under /brands, e.g. "audi/a4/oil-change/dubai".
-  { table: 'generated_pages', path: s => `${BASE_URL}/brands/${s}`, freq: 'weekly', priority: 0.6 },
+  // Programmatic template pages (brand / brand-service / brand-model / etc).
+  // slug is the full page path, e.g. "dubai/audi/oil-change".
+  { table: 'generated_pages', path: s => `${BASE_URL}/${s}`, freq: 'weekly', priority: 0.6 },
 ]
 
 interface Row { slug: string; updated_at: string; seo_json: SeoJson | null }

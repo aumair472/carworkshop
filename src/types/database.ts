@@ -638,44 +638,18 @@ export type Database = {
           display_in_footer: boolean
           generated_at: string
           h1: string
-          highlight_text: string | null
-          icon_image_alt: string | null
-          icon_image_png_url: string | null
-          icon_image_title: string | null
-          icon_image_webp_url: string | null
           id: string
-          image_alt: string | null
-          image_bottom_alt: string | null
-          image_bottom_png_url: string | null
-          image_bottom_title: string | null
-          image_bottom_webp_url: string | null
-          image_large_url: string | null
-          image_mobile_url: string | null
-          image_png_url: string | null
-          image_title: string | null
-          image_webp_url: string | null
-          is_expensive_car: boolean
-          key_points: string | null
-          location_id: string | null
           meta_description: string
           meta_keyword: string | null
           meta_title: string
-          mid_category_title: string | null
           model_id: string | null
-          og_image_url: string | null
-          page_type: Database["public"]["Enums"]["page_type"]
-          schema_description: string | null
-          schema_headline: string | null
           seo_json: Json
-          service_id: string | null
           short_description: string | null
           slug: string
           state: string | null
           status: Database["public"]["Enums"]["content_status"]
-          template: string
-          template_id: string | null
+          template_type: Database["public"]["Enums"]["template_type"]
           updated_at: string
-          use_dynamic_content: boolean
         }
         Insert: {
           approval_status?: Database["public"]["Enums"]["approval_status"]
@@ -691,44 +665,18 @@ export type Database = {
           display_in_footer?: boolean
           generated_at?: string
           h1: string
-          highlight_text?: string | null
-          icon_image_alt?: string | null
-          icon_image_png_url?: string | null
-          icon_image_title?: string | null
-          icon_image_webp_url?: string | null
           id?: string
-          image_alt?: string | null
-          image_bottom_alt?: string | null
-          image_bottom_png_url?: string | null
-          image_bottom_title?: string | null
-          image_bottom_webp_url?: string | null
-          image_large_url?: string | null
-          image_mobile_url?: string | null
-          image_png_url?: string | null
-          image_title?: string | null
-          image_webp_url?: string | null
-          is_expensive_car?: boolean
-          key_points?: string | null
-          location_id?: string | null
           meta_description: string
           meta_keyword?: string | null
           meta_title: string
-          mid_category_title?: string | null
           model_id?: string | null
-          og_image_url?: string | null
-          page_type: Database["public"]["Enums"]["page_type"]
-          schema_description?: string | null
-          schema_headline?: string | null
           seo_json?: Json
-          service_id?: string | null
           short_description?: string | null
           slug: string
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
-          template?: string
-          template_id?: string | null
+          template_type?: Database["public"]["Enums"]["template_type"]
           updated_at?: string
-          use_dynamic_content?: boolean
         }
         Update: {
           approval_status?: Database["public"]["Enums"]["approval_status"]
@@ -744,44 +692,18 @@ export type Database = {
           display_in_footer?: boolean
           generated_at?: string
           h1?: string
-          highlight_text?: string | null
-          icon_image_alt?: string | null
-          icon_image_png_url?: string | null
-          icon_image_title?: string | null
-          icon_image_webp_url?: string | null
           id?: string
-          image_alt?: string | null
-          image_bottom_alt?: string | null
-          image_bottom_png_url?: string | null
-          image_bottom_title?: string | null
-          image_bottom_webp_url?: string | null
-          image_large_url?: string | null
-          image_mobile_url?: string | null
-          image_png_url?: string | null
-          image_title?: string | null
-          image_webp_url?: string | null
-          is_expensive_car?: boolean
-          key_points?: string | null
-          location_id?: string | null
           meta_description?: string
           meta_keyword?: string | null
           meta_title?: string
-          mid_category_title?: string | null
           model_id?: string | null
-          og_image_url?: string | null
-          page_type?: Database["public"]["Enums"]["page_type"]
-          schema_description?: string | null
-          schema_headline?: string | null
           seo_json?: Json
-          service_id?: string | null
           short_description?: string | null
           slug?: string
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
-          template?: string
-          template_id?: string | null
+          template_type?: Database["public"]["Enums"]["template_type"]
           updated_at?: string
-          use_dynamic_content?: boolean
         }
         Relationships: [
           {
@@ -806,31 +728,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "generated_pages_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "generated_pages_model_id_fkey"
             columns: ["model_id"]
             isOneToOne: false
             referencedRelation: "brand_models"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_pages_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_pages_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "page_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -993,7 +894,7 @@ export type Database = {
           id: string
           is_default: boolean
           name: string
-          page_type: Database["public"]["Enums"]["page_type"]
+          page_type: string
           sections_json: Json
         }
         Insert: {
@@ -1001,7 +902,7 @@ export type Database = {
           id?: string
           is_default?: boolean
           name: string
-          page_type: Database["public"]["Enums"]["page_type"]
+          page_type: string
           sections_json: Json
         }
         Update: {
@@ -1009,7 +910,7 @@ export type Database = {
           id?: string
           is_default?: boolean
           name?: string
-          page_type?: Database["public"]["Enums"]["page_type"]
+          page_type?: string
           sections_json?: Json
         }
         Relationships: []
@@ -1307,16 +1208,12 @@ export type Database = {
         | "generate"
       content_status: "draft" | "published" | "archived"
       lead_status: "new" | "contacted" | "in_progress" | "converted" | "closed"
-      page_type:
+      template_type:
         | "brand"
         | "brand_service"
-        | "brand_location"
-        | "model"
-        | "model_service"
-        | "model_location"
-        | "model_service_location"
-        | "service"
-        | "location"
+        | "brand_model"
+        | "brand_model_service"
+        | "general_service"
       user_role:
         | "super_admin"
         | "admin"
@@ -1467,16 +1364,12 @@ export const Constants = {
       ],
       content_status: ["draft", "published", "archived"],
       lead_status: ["new", "contacted", "in_progress", "converted", "closed"],
-      page_type: [
+      template_type: [
         "brand",
         "brand_service",
-        "brand_location",
-        "model",
-        "model_service",
-        "model_location",
-        "model_service_location",
-        "service",
-        "location",
+        "brand_model",
+        "brand_model_service",
+        "general_service",
       ],
       user_role: [
         "super_admin",

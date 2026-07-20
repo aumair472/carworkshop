@@ -52,18 +52,6 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       if (complete_description !== undefined) {
         merged.main_content = complete_description ? sanitizeHTML(complete_description) : null
       }
-      if (incoming.cost_description !== undefined) {
-        merged.cost_description = incoming.cost_description ? sanitizeHTML(incoming.cost_description) : incoming.cost_description
-      }
-      if (incoming.why_important !== undefined) {
-        merged.why_important = incoming.why_important ? sanitizeHTML(incoming.why_important) : incoming.why_important
-      }
-      if (incoming.why_choose_us_brand !== undefined) {
-        merged.why_choose_us_brand = incoming.why_choose_us_brand ? sanitizeHTML(incoming.why_choose_us_brand) : incoming.why_choose_us_brand
-      }
-      if (incoming.service_section?.description) {
-        merged.service_section = { ...incoming.service_section, description: sanitizeHTML(incoming.service_section.description) }
-      }
       contentUpdate = { content_json: merged }
     }
 

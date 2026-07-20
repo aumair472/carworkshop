@@ -6,16 +6,12 @@ interface ServiceCardsSectionProps {
   services: ServiceWithPrice[]
   title?: string
   subtitle?: string
-  brandSlug?: string
-  modelSlug?: string
 }
 
 export function ServiceCardsSection({
   services,
   title = 'Our Services',
   subtitle,
-  brandSlug,
-  modelSlug,
 }: ServiceCardsSectionProps) {
   return (
     <section className="py-16 lg:py-24" aria-labelledby="services-heading">
@@ -29,14 +25,8 @@ export function ServiceCardsSection({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {services.map(service => {
-            const href = brandSlug && modelSlug
-              ? `/brands/${brandSlug}/${modelSlug}/${service.slug}`
-              : brandSlug
-                ? `/brands/${brandSlug}/${service.slug}`
-                : `/services/${service.slug}`
-
             return (
-              <Link key={service.id} href={href} className="group card-premium flex flex-col p-6 lg:p-7">
+              <Link key={service.id} href="/contact" className="group card-premium flex flex-col p-6 lg:p-7">
                 <div className="w-12 h-12 rounded-2xl bg-[#EEF3FB] ring-1 ring-[#DCE6F6] flex items-center justify-center mb-5 group-hover:bg-[#FDEEE4] group-hover:ring-[#F6D2BC] transition-all">
                   {service.icon_url ? (
                     <Image src={service.icon_url} alt="" width={26} height={26} aria-hidden="true" />
