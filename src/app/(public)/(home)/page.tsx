@@ -88,8 +88,6 @@ export default async function HomePage() {
         badge="UAE's #1 Car Service Platform"
         ctaLabel={c.hero?.cta_primary_text || 'Book Now'}
         ctaHref={c.hero?.cta_primary_link || '/contact'}
-        secondaryCtaLabel={c.hero?.cta_secondary_text || 'See All Services'}
-        secondaryCtaHref={c.hero?.cta_secondary_link || '/services'}
         heroStats={[
           { value: settings.hero_stat_1_value, label: settings.hero_stat_1_label },
           { value: settings.hero_stat_2_value, label: settings.hero_stat_2_label },

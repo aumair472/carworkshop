@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getPageBySlug, getRelatedSections, type RelatedLink } from '@/lib/page-engine/content'
+import { getPageBySlug, getRelatedSections, getBrandName, type RelatedLink } from '@/lib/page-engine/content'
 import { resolveSEO, seoToMetadata } from '@/lib/seo'
 import { createPublicSupabase } from '@/lib/supabase/public'
-import { HeroSection } from '@/components/sections/HeroSection'
+import { HeroSection, DEFAULT_HERO_STATS } from '@/components/sections/HeroSection'
 import { WhyChooseUs } from '@/components/sections/WhyChooseUs'
 import { CTABanner } from '@/components/sections/CTABanner'
 
@@ -16,8 +16,9 @@ async function loadPage(slugParts: string[]) {
   const slug = slugParts.join('/')
   const page = await getPageBySlug(slug)
   if (!page) return null
-  const sections = await getRelatedSections(page)
-  return { page, sections }
+  const brandName = await getBrandName(page.brand_id)
+  const sections = await getRelatedSections(page, brandName)
+  return { page, sections, brandName }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -66,18 +67,45 @@ function LinkGrid({ title, links }: { title: string; links: RelatedLink[] }) {
   )
 }
 
+function ServiceCards({ title, links }: { title: string; links: RelatedLink[] }) {
+  if (links.length === 0) return null
+  return (
+    <section className="py-12 border-t border-hairline">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-xl font-extrabold text-[#0F172A] mb-6">{title}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {links.map(l => (
+            <Link key={l.slug} href={`/${l.slug}`} className="group card-premium flex flex-col p-6">
+              <h3 className="text-base font-bold text-[#0F172A] mb-2 group-hover:text-[#274E96] transition-colors">{l.h1}</h3>
+              {l.short_description && (
+                <p className="text-sm text-[#64748B] leading-relaxed line-clamp-3">{l.short_description}</p>
+              )}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default async function GeneratedPage({ params }: Props) {
   const { slug } = await params
   const loaded = await loadPage(slug)
   if (!loaded) notFound()
-  const { page, sections } = loaded
+  const { page, sections, brandName } = loaded
+
+  const heroStats = page.starting_price
+    ? [{ value: page.starting_price, label: 'Starting Price' }, ...DEFAULT_HERO_STATS.slice(1)]
+    : undefined
+
+  const servicesHeading = page.content_json?.services_heading || 'Our Services'
+  const modelsHeading = brandName ? `${brandName} Models We Serve` : 'Models We Serve'
 
   return (
     <>
-      <HeroSection h1={page.h1} subtitle={page.short_description ?? undefined} />
+      <HeroSection h1={page.h1} subtitle={page.short_description ?? undefined} heroStats={heroStats} />
 
-      <LinkGrid title="Our Services" links={sections.services} />
-      {sections.otherServices.length > 0 && <LinkGrid title="Other Services" links={sections.otherServices} />}
+      <ServiceCards title={servicesHeading} links={sections.services} />
 
       <WhyChooseUs />
 
@@ -89,9 +117,11 @@ export default async function GeneratedPage({ params }: Props) {
         </section>
       )}
 
-      <CTABanner />
+      {sections.models.length > 0 && <LinkGrid title={modelsHeading} links={sections.models} />}
 
       <LinkGrid title="Locations We Serve" links={sections.locations} />
+
+      <CTABanner />
     </>
   )
 }

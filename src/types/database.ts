@@ -646,6 +646,7 @@ export type Database = {
           seo_json: Json
           short_description: string | null
           slug: string
+          starting_price: string | null
           state: string | null
           status: Database["public"]["Enums"]["content_status"]
           template_type: Database["public"]["Enums"]["template_type"]
@@ -673,6 +674,7 @@ export type Database = {
           seo_json?: Json
           short_description?: string | null
           slug: string
+          starting_price?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           template_type?: Database["public"]["Enums"]["template_type"]
@@ -700,6 +702,7 @@ export type Database = {
           seo_json?: Json
           short_description?: string | null
           slug?: string
+          starting_price?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           template_type?: Database["public"]["Enums"]["template_type"]

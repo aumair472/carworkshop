@@ -24,6 +24,7 @@ export interface SeoPageFormValues {
   meta_description: string
   brand_id: string
   model_id: string
+  starting_price: string
   short_description: string
   complete_description: string
   status: string
@@ -34,7 +35,7 @@ export interface SeoPageFormValues {
 export const EMPTY_SEO_PAGE: SeoPageFormValues = {
   country: 'AE', state: '', template_type: 'general_service', h1: '', arabic_title: '', slug: '',
   meta_title: '', meta_keyword: '', meta_description: '',
-  brand_id: '', model_id: '', short_description: '', complete_description: '',
+  brand_id: '', model_id: '', starting_price: '', short_description: '', complete_description: '',
   status: 'draft', display_in_footer: false,
   content_json: {},
 }
@@ -145,6 +146,7 @@ export function SeoPageForm({ pageId, initial, brands }: Props) {
       meta_description: v.meta_description,
       brand_id: requiresBrand ? (v.brand_id || null) : null,
       model_id: requiresModel ? (v.model_id || null) : null,
+      starting_price: v.starting_price || null,
       short_description: v.short_description || null,
       complete_description: v.complete_description || null,
       status: v.status,
@@ -227,6 +229,7 @@ export function SeoPageForm({ pageId, initial, brands }: Props) {
           <AdminInput label="Title (H1)" required value={v.h1} onChange={e => set('h1', e.target.value)} />
           <AdminInput label="Arabic Title" dir="rtl" value={v.arabic_title} onChange={e => set('arabic_title', e.target.value)} />
         </div>
+        <AdminInput label="Starting Price" hint='Shown in the hero stat card, e.g. "From AED 149"' value={v.starting_price} onChange={e => set('starting_price', e.target.value)} maxCount={60} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AdminInput label="URL" required value={`${siteUrl}/`} disabled readOnly />
           <div>
@@ -243,10 +246,13 @@ export function SeoPageForm({ pageId, initial, brands }: Props) {
 
       {/* Section 2: CONTENT */}
       <AdminSectionCard title="Content" headerColor="#22C55E">
-        <div>
-          <AdminLabel>Short Description</AdminLabel>
-          <RichTextEditor value={v.short_description} onChange={html => set('short_description', html)} minHeight={180} />
-        </div>
+        <AdminTextarea label="Short Description" hint="Plain text — shown as the hero subtitle" value={v.short_description} onChange={e => set('short_description', e.target.value)} rows={3} maxCount={500} />
+        <AdminInput
+          label="Services Section Heading"
+          hint='Defaults to "Our Services" if left blank'
+          value={v.content_json.services_heading ?? ''}
+          onChange={e => setContent('services_heading', e.target.value)}
+        />
         <div>
           <AdminLabel>Long Description</AdminLabel>
           <RichTextEditor value={v.complete_description} onChange={html => set('complete_description', html)} minHeight={260} />

@@ -66,6 +66,8 @@ export interface TrustStat {
 export interface PageContent {
   main_content?: string | null
   faqs?: Array<{ q: string; a: string }>
+  /** Editable H2 above the auto-assembled services grid. Defaults to "Our Services". */
+  services_heading?: string | null
 }
 
 // Static page section model stored in static_pages.sections_json

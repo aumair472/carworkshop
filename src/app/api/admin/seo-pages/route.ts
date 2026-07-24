@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getActingUser } from '@/lib/auth-guard'
-import { sanitizeHTML } from '@/lib/sanitize'
+import { sanitizeHTML, stripHTML } from '@/lib/sanitize'
 import { logAudit } from '@/lib/audit'
 import { revalidatePage } from '@/lib/revalidate'
 import { nextStatusOnSave } from '@/lib/approval'
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       .insert({
         ...rest,
         meta_description: rest.meta_description ?? '',
-        short_description: short_description ? sanitizeHTML(short_description) : null,
+        short_description: short_description ? stripHTML(short_description) : null,
         arabic_short_description: arabic_short_description ? sanitizeHTML(arabic_short_description) : null,
         arabic_complete_description: arabic_complete_description ? sanitizeHTML(arabic_complete_description) : null,
         content_json: Object.keys(merged).length > 0 ? (merged as unknown as Json) : null,

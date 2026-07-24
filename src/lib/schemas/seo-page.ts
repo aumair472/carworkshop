@@ -21,7 +21,8 @@ export const SeoPageUpdateSchema = z.object({
   meta_description: z.string().max(300).optional(),
   brand_id: z.string().uuid().nullable().optional(),
   model_id: z.string().uuid().nullable().optional(),
-  short_description: z.string().max(50000).nullable().optional(),
+  starting_price: z.string().max(60).nullable().optional(),
+  short_description: z.string().max(500).nullable().optional(),
   arabic_short_description: z.string().max(50000).nullable().optional(),
   arabic_complete_description: z.string().max(100000).nullable().optional(),
   // "Complete Description" maps onto content_json.main_content downstream.

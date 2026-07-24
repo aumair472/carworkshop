@@ -30,6 +30,7 @@ export default async function EditSeoPagePage({ params }: { params: Promise<{ id
     meta_description: page.meta_description ?? '',
     brand_id: page.brand_id ?? '',
     model_id: page.model_id ?? '',
+    starting_price: page.starting_price ?? '',
     short_description: page.short_description ?? '',
     complete_description: content.main_content ?? '',
     status: page.status,

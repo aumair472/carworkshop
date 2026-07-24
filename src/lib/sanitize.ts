@@ -18,3 +18,8 @@ export function sanitizeHTML(dirty: string): string {
     allowedStyles: {},
   })
 }
+
+// Plain-text fields (e.g. hero short description) — strip all markup, keep text only.
+export function stripHTML(dirty: string): string {
+  return sanitizeHtml(dirty, { allowedTags: [], allowedAttributes: {} }).trim()
+}

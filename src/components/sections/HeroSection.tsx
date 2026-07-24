@@ -7,8 +7,6 @@ interface HeroSectionProps {
   subtitle?: string
   ctaLabel?: string
   ctaHref?: string
-  secondaryCtaLabel?: string
-  secondaryCtaHref?: string
   badge?: string
   /** Decorative stat card cells. [0] = headline, [1..3] = grid. */
   heroStats?: HeroStat[]
@@ -29,8 +27,6 @@ export function HeroSection({
   subtitle,
   ctaLabel = 'Book Now',
   ctaHref = '/contact',
-  secondaryCtaLabel = 'See All Services',
-  secondaryCtaHref = '/services',
   badge,
   heroStats,
 }: HeroSectionProps) {
@@ -75,12 +71,6 @@ export function HeroSection({
               >
                 {ctaLabel}
                 <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-              <Link
-                href={secondaryCtaHref}
-                className="inline-flex items-center justify-center px-7 py-4 rounded-xl bg-white text-[#274E96] font-semibold text-base ring-1 ring-[#C7D9F5] hover:ring-[#4472C4] hover:bg-[#F7FAFF] transition-all"
-              >
-                {secondaryCtaLabel}
               </Link>
             </div>
 
